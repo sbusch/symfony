@@ -16,21 +16,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Allows to filter a Response object
+ * Allows to filter a Response object.
  *
  * You can call getResponse() to retrieve the current response. With
  * setResponse() you can set a new response that will be returned to the
  * browser.
  *
- * @author Bernhard Schussek <bernhard.schussek@symfony.com>
- *
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class FilterResponseEvent extends KernelEvent
 {
     /**
-     * The current response object
-     * @var Symfony\Component\HttpFoundation\Response
+     * The current response object.
+     *
+     * @var Response
      */
     private $response;
 
@@ -42,11 +41,9 @@ class FilterResponseEvent extends KernelEvent
     }
 
     /**
-     * Returns the current response object
+     * Returns the current response object.
      *
-     * @return Symfony\Component\HttpFoundation\Response
-     *
-     * @api
+     * @return Response
      */
     public function getResponse()
     {
@@ -54,11 +51,9 @@ class FilterResponseEvent extends KernelEvent
     }
 
     /**
-     * Sets a new response object
+     * Sets a new response object.
      *
-     * @param Symfony\Component\HttpFoundation\Response $response
-     *
-     * @api
+     * @param Response $response
      */
     public function setResponse(Response $response)
     {

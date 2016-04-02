@@ -16,30 +16,39 @@ use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class DateValidator extends ConstraintValidator
 {
     const PATTERN = '/^(\d{4})-(\d{2})-(\d{2})$/';
 
     /**
-     * Checks if the passed value is valid.
+     * Checks whether a date is valid.
      *
-     * @param mixed      $value      The value that should be validated
-     * @param Constraint $constraint The constraint for the validation
+     * @param int $year  The year
+     * @param int $month The month
+     * @param int $day   The day
      *
-     * @return Boolean Whether or not the value is valid
+     * @return bool Whether the date is valid
      *
-     * @api
+     * @internal
      */
-    public function isValid($value, Constraint $constraint)
+    public static function checkDate($year, $month, $day)
     {
-        if (null === $value || '' === $value) {
-            return true;
+        return checkdate($month, $day, $year);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validate($value, Constraint $constraint)
+    {
+        if (!$constraint instanceof Date) {
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Date');
         }
 
-        if ($value instanceof \DateTime) {
-            return true;
+        if (null === $value || '' === $value || $value instanceof \DateTime) {
+            return;
         }
 
         if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
@@ -48,12 +57,20 @@ class DateValidator extends ConstraintValidator
 
         $value = (string) $value;
 
-        if (!preg_match(static::PATTERN, $value, $matches) || !checkdate($matches[2], $matches[3], $matches[1])) {
-            $this->context->addViolation($constraint->message, array('{{ value }}' => $value));
+        if (!preg_match(static::PATTERN, $value, $matches)) {
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Date::INVALID_FORMAT_ERROR)
+                ->addViolation();
 
-            return false;
+            return;
         }
 
-        return true;
+        if (!self::checkDate($matches[1], $matches[2], $matches[3])) {
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Date::INVALID_DATE_ERROR)
+                ->addViolation();
+        }
     }
 }

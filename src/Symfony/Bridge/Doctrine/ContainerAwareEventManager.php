@@ -13,7 +13,6 @@ namespace Symfony\Bridge\Doctrine;
 
 use Doctrine\Common\EventArgs;
 use Doctrine\Common\EventManager;
-use Doctrine\Common\EventSubscriber;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -25,6 +24,7 @@ class ContainerAwareEventManager extends EventManager
 {
     /**
      * Map of registered listeners.
+     *
      * <event> => <listeners>
      *
      * @var array
@@ -41,16 +41,17 @@ class ContainerAwareEventManager extends EventManager
     /**
      * Dispatches an event to all registered listeners.
      *
-     * @param string $eventName The name of the event to dispatch. The name of the event is
-     *                          the name of the method that is invoked on listeners.
+     * @param string    $eventName The name of the event to dispatch. The name of the event is
+     *                             the name of the method that is invoked on listeners.
      * @param EventArgs $eventArgs The event arguments to pass to the event handlers/listeners.
      *                             If not supplied, the single empty EventArgs instance is used.
-     * @return boolean
+     *
+     * @return bool
      */
     public function dispatchEvent($eventName, EventArgs $eventArgs = null)
     {
         if (isset($this->listeners[$eventName])) {
-            $eventArgs = $eventArgs === null ? EventArgs::getEmptyInstance() : $eventArgs;
+            $eventArgs = null === $eventArgs ? EventArgs::getEmptyInstance() : $eventArgs;
 
             $initialized = isset($this->initialized[$eventName]);
 
@@ -69,6 +70,7 @@ class ContainerAwareEventManager extends EventManager
      * Gets the listeners of a specific event or all listeners.
      *
      * @param string $event The name of the event.
+     *
      * @return array The event listeners for the specified event, or all event listeners.
      */
     public function getListeners($event = null)
@@ -80,7 +82,8 @@ class ContainerAwareEventManager extends EventManager
      * Checks whether an event has any registered listeners.
      *
      * @param string $event
-     * @return boolean TRUE if the specified event has any listeners, FALSE otherwise.
+     *
+     * @return bool TRUE if the specified event has any listeners, FALSE otherwise.
      */
     public function hasListeners($event)
     {
@@ -90,8 +93,10 @@ class ContainerAwareEventManager extends EventManager
     /**
      * Adds an event listener that listens on the specified events.
      *
-     * @param string|array $events The event(s) to listen on.
+     * @param string|array  $events   The event(s) to listen on.
      * @param object|string $listener The listener object.
+     *
+     * @throws \RuntimeException
      */
     public function addEventListener($events, $listener)
     {
@@ -116,7 +121,7 @@ class ContainerAwareEventManager extends EventManager
     /**
      * Removes an event listener from the specified events.
      *
-     * @param string|array $events
+     * @param string|array  $events
      * @param object|string $listener
      */
     public function removeEventListener($events, $listener)

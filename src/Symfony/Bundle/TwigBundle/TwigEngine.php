@@ -11,23 +11,20 @@
 
 namespace Symfony\Bundle\TwigBundle;
 
+use Symfony\Bridge\Twig\TwigEngine as BaseEngine;
 use Symfony\Bundle\FrameworkBundle\Templating\EngineInterface;
-use Symfony\Bundle\FrameworkBundle\Templating\GlobalVariables;
 use Symfony\Bundle\FrameworkBundle\Templating\TemplateReference;
 use Symfony\Component\Templating\TemplateNameParserInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Config\FileLocatorInterface;
-use Symfony\Component\Templating\StreamingEngineInterface;
 
 /**
- * This engine knows how to render Twig templates.
+ * This engine renders Twig templates.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class TwigEngine implements EngineInterface, StreamingEngineInterface
+class TwigEngine extends BaseEngine implements EngineInterface
 {
-    protected $environment;
-    protected $parser;
     protected $locator;
 
     /**
@@ -36,40 +33,27 @@ class TwigEngine implements EngineInterface, StreamingEngineInterface
      * @param \Twig_Environment           $environment A \Twig_Environment instance
      * @param TemplateNameParserInterface $parser      A TemplateNameParserInterface instance
      * @param FileLocatorInterface        $locator     A FileLocatorInterface instance
-     * @param GlobalVariables|null        $globals     A GlobalVariables instance or null
      */
-    public function __construct(\Twig_Environment $environment, TemplateNameParserInterface $parser, FileLocatorInterface $locator, GlobalVariables $globals = null)
+    public function __construct(\Twig_Environment $environment, TemplateNameParserInterface $parser, FileLocatorInterface $locator)
     {
-        $this->environment = $environment;
-        $this->parser = $parser;
-        $this->locator = $locator;
+        parent::__construct($environment, $parser);
 
-        if (null !== $globals) {
-            $environment->addGlobal('app', $globals);
-        }
+        $this->locator = $locator;
     }
 
     /**
-     * Renders a template.
-     *
-     * @param mixed $name       A template name
-     * @param array $parameters An array of parameters to pass to the template
-     *
-     * @return string The evaluated template as a string
-     *
-     * @throws \InvalidArgumentException if the template does not exist
-     * @throws \RuntimeException         if the template cannot be rendered
+     * {@inheritdoc}
      */
     public function render($name, array $parameters = array())
     {
         try {
-            return $this->load($name)->render($parameters);
+            return parent::render($name, $parameters);
         } catch (\Twig_Error $e) {
             if ($name instanceof TemplateReference) {
                 try {
                     // try to get the real file name of the template where the error occurred
                     $e->setTemplateFile(sprintf('%s', $this->locator->locate($this->parser->parse($e->getTemplateFile()))));
-                } catch (\Exception $ex) {
+                } catch (\Exception $e2) {
                 }
             }
 
@@ -78,62 +62,9 @@ class TwigEngine implements EngineInterface, StreamingEngineInterface
     }
 
     /**
-     * Streams a template.
+     * {@inheritdoc}
      *
-     * @param mixed $name       A template name or a TemplateReferenceInterface instance
-     * @param array $parameters An array of parameters to pass to the template
-     *
-     * @throws \RuntimeException if the template cannot be rendered
-     */
-    public function stream($name, array $parameters = array())
-    {
-        $this->load($name)->display($parameters);
-    }
-
-    /**
-     * Returns true if the template exists.
-     *
-     * @param mixed $name A template name
-     *
-     * @return Boolean true if the template exists, false otherwise
-     */
-    public function exists($name)
-    {
-        try {
-            $this->load($name);
-        } catch (\InvalidArgumentException $e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Returns true if this class is able to render the given template.
-     *
-     * @param string $name A template name
-     *
-     * @return Boolean True if this class supports the given resource, false otherwise
-     */
-    public function supports($name)
-    {
-        if ($name instanceof \Twig_Template) {
-            return true;
-        }
-
-        $template = $this->parser->parse($name);
-
-        return 'twig' === $template->get('engine');
-    }
-
-    /**
-     * Renders a view and returns a Response.
-     *
-     * @param string   $view       The view name
-     * @param array    $parameters An array of parameters to pass to the view
-     * @param Response $response   A Response instance
-     *
-     * @return Response A Response instance
+     * @throws \Twig_Error if something went wrong like a thrown exception while rendering the template
      */
     public function renderResponse($view, array $parameters = array(), Response $response = null)
     {
@@ -144,27 +75,5 @@ class TwigEngine implements EngineInterface, StreamingEngineInterface
         $response->setContent($this->render($view, $parameters));
 
         return $response;
-    }
-
-    /**
-     * Loads the given template.
-     *
-     * @param mixed $name A template name or an instance of Twig_Template
-     *
-     * @return \Twig_TemplateInterface A \Twig_TemplateInterface instance
-     *
-     * @throws \InvalidArgumentException if the template does not exist
-     */
-    protected function load($name)
-    {
-        if ($name instanceof \Twig_Template) {
-            return $name;
-        }
-
-        try {
-            return $this->environment->loadTemplate($name);
-        } catch (\Twig_Error_Loader $e) {
-            throw new \InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
-        }
     }
 }

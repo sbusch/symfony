@@ -1,39 +1,49 @@
 <?php
 
-namespace Symfony\Component\Serializer\Encoder;
-
-
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
+namespace Symfony\Component\Serializer\Encoder;
+
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
+
 /**
- * Defines the interface of decoders
+ * Defines the interface of decoders.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 interface DecoderInterface
 {
     /**
-     * Decodes a string into PHP data
+     * Decodes a string into PHP data.
      *
-     * @param scalar $data   Data to decode
-     * @param string $format Format name
+     * @param string $data    Data to decode
+     * @param string $format  Format name
+     * @param array  $context options that decoders have access to.
+     *
+     * The format parameter specifies which format the data is in; valid values
+     * depend on the specific implementation. Authors implementing this interface
+     * are encouraged to document which formats they support in a non-inherited
+     * phpdoc comment.
      *
      * @return mixed
+     *
+     * @throws UnexpectedValueException
      */
-    function decode($data, $format);
+    public function decode($data, $format, array $context = array());
 
     /**
-     * Checks whether the serializer can decode from given format
+     * Checks whether the deserializer can decode from given format.
      *
      * @param string $format format name
-     * @return Boolean
+     *
+     * @return bool
      */
-    function supportsDecoding($format);
+    public function supportsDecoding($format);
 }

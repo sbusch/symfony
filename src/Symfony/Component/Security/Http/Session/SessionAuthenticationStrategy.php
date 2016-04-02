@@ -1,12 +1,12 @@
 <?php
 
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Symfony\Component\Security\Http\Session;
@@ -26,9 +26,9 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class SessionAuthenticationStrategy implements SessionAuthenticationStrategyInterface
 {
-    const NONE         = 'none';
-    const MIGRATE      = 'migrate';
-    const INVALIDATE   = 'invalidate';
+    const NONE = 'none';
+    const MIGRATE = 'migrate';
+    const INVALIDATE = 'invalidate';
 
     private $strategy;
 
@@ -38,7 +38,7 @@ class SessionAuthenticationStrategy implements SessionAuthenticationStrategyInte
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function onAuthentication(Request $request, TokenInterface $token)
     {
@@ -47,7 +47,7 @@ class SessionAuthenticationStrategy implements SessionAuthenticationStrategyInte
                 return;
 
             case self::MIGRATE:
-                $request->getSession()->migrate();
+                $request->getSession()->migrate(true);
 
                 return;
 

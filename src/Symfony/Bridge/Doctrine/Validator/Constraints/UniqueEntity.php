@@ -14,17 +14,22 @@ namespace Symfony\Bridge\Doctrine\Validator\Constraints;
 use Symfony\Component\Validator\Constraint;
 
 /**
- * Constraint for the Unique Entity validator
+ * Constraint for the Unique Entity validator.
  *
  * @Annotation
+ * @Target({"CLASS", "ANNOTATION"})
+ *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  */
 class UniqueEntity extends Constraint
 {
-    public $message = 'This value is already used';
+    public $message = 'This value is already used.';
     public $service = 'doctrine.orm.validator.unique';
     public $em = null;
+    public $repositoryMethod = 'findBy';
     public $fields = array();
+    public $errorPath = null;
+    public $ignoreNull = true;
 
     public function getRequiredOptions()
     {
@@ -42,7 +47,7 @@ class UniqueEntity extends Constraint
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getTargets()
     {

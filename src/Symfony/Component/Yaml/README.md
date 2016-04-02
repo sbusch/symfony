@@ -1,17 +1,13 @@
 Yaml Component
 ==============
 
-YAML implements most of the YAML 1.2 specification.
-
-    use Symfony\Component\Yaml\Yaml;
-
-    $array = Yaml::parse($file);
-
-    print Yaml::dump($array);
+The Yaml component loads and dumps YAML files.
 
 Resources
 ---------
 
-Unit tests:
-
-https://github.com/symfony/symfony/tree/master/tests/Symfony/Tests/Component/Yaml
+  * [Documentation](https://symfony.com/doc/current/components/yaml/index.html)
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)

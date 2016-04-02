@@ -1,21 +1,21 @@
 <?php
 
-namespace Symfony\Component\Serializer\Normalizer;
-
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
+namespace Symfony\Component\Serializer\Normalizer;
+
 /**
- * Defines the most basic interface a class must implement to be normalizable
+ * Defines the most basic interface a class must implement to be normalizable.
  *
  * If a normalizer is registered for the class and it doesn't implement
- * the Normalizable interfaces, the normalizer will be used instead
+ * the Normalizable interfaces, the normalizer will be used instead.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
@@ -28,10 +28,12 @@ interface NormalizableInterface
      * recursively all child objects of the implementor.
      *
      * @param NormalizerInterface $normalizer The normalizer is given so that you
-     *   can use it to normalize objects contained within this object.
-     * @param string|null $format The format is optionally given to be able to normalize differently
-     *   based on different output formats.
-     * @return array|scalar
+     *                                        can use it to normalize objects contained within this object.
+     * @param string|null         $format     The format is optionally given to be able to normalize differently
+     *                                        based on different output formats.
+     * @param array               $context    Options for normalizing this object
+     *
+     * @return array|string|bool|int|float|null
      */
-    function normalize(NormalizerInterface $normalizer, $format = null);
+    public function normalize(NormalizerInterface $normalizer, $format = null, array $context = array());
 }

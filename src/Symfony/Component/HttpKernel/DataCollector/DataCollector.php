@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\HttpKernel\DataCollector;
 
-use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Component\HttpKernel\DataCollector\Util\ValueExporter;
 
 /**
  * DataCollector.
@@ -19,10 +19,16 @@ use Symfony\Component\HttpKernel\Profiler\Profiler;
  * Children of this class must store the collected data in the data property.
  *
  * @author Fabien Potencier <fabien@symfony.com>
+ * @author Bernhard Schussek <bschussek@symfony.com>
  */
 abstract class DataCollector implements DataCollectorInterface, \Serializable
 {
-    protected $data;
+    protected $data = array();
+
+    /**
+     * @var ValueExporter
+     */
+    private $valueExporter;
 
     public function serialize()
     {
@@ -32,5 +38,21 @@ abstract class DataCollector implements DataCollectorInterface, \Serializable
     public function unserialize($data)
     {
         $this->data = unserialize($data);
+    }
+
+    /**
+     * Converts a PHP variable to a string.
+     *
+     * @param mixed $var A PHP variable
+     *
+     * @return string The string representation of the variable
+     */
+    protected function varToString($var)
+    {
+        if (null === $this->valueExporter) {
+            $this->valueExporter = new ValueExporter();
+        }
+
+        return $this->valueExporter->exportValue($var);
     }
 }

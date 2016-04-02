@@ -16,9 +16,9 @@ namespace Symfony\Component\Finder\Iterator;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class FileTypeFilterIterator extends \FilterIterator
+class FileTypeFilterIterator extends FilterIterator
 {
-    const ONLY_FILES       = 1;
+    const ONLY_FILES = 1;
     const ONLY_DIRECTORIES = 2;
 
     private $mode;
@@ -27,7 +27,7 @@ class FileTypeFilterIterator extends \FilterIterator
      * Constructor.
      *
      * @param \Iterator $iterator The Iterator to filter
-     * @param integer   $mode     The mode (self::ONLY_FILES or self::ONLY_DIRECTORIES)
+     * @param int       $mode     The mode (self::ONLY_FILES or self::ONLY_DIRECTORIES)
      */
     public function __construct(\Iterator $iterator, $mode)
     {
@@ -39,13 +39,14 @@ class FileTypeFilterIterator extends \FilterIterator
     /**
      * Filters the iterator values.
      *
-     * @return Boolean true if the value should be kept, false otherwise
+     * @return bool true if the value should be kept, false otherwise
      */
     public function accept()
     {
-        if (self::ONLY_DIRECTORIES === (self::ONLY_DIRECTORIES & $this->mode) && $this->isFile()) {
+        $fileinfo = $this->current();
+        if (self::ONLY_DIRECTORIES === (self::ONLY_DIRECTORIES & $this->mode) && $fileinfo->isFile()) {
             return false;
-        } elseif (self::ONLY_FILES === (self::ONLY_FILES & $this->mode) && $this->isDir()) {
+        } elseif (self::ONLY_FILES === (self::ONLY_FILES & $this->mode) && $fileinfo->isDir()) {
             return false;
         }
 

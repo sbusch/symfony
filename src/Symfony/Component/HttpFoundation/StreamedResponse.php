@@ -23,8 +23,6 @@ namespace Symfony\Component\HttpFoundation;
  * @see flush()
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 class StreamedResponse extends Response
 {
@@ -34,13 +32,11 @@ class StreamedResponse extends Response
     /**
      * Constructor.
      *
-     * @param mixed   $callback A valid PHP callback
-     * @param integer $status   The response status code
-     * @param array   $headers  An array of response headers
-     *
-     * @api
+     * @param callable|null $callback A valid PHP callback or null to set it later
+     * @param int           $status   The response status code
+     * @param array         $headers  An array of response headers
      */
-    public function __construct($callback = null, $status = 200, $headers = array())
+    public function __construct(callable $callback = null, $status = 200, $headers = array())
     {
         parent::__construct(null, $status, $headers);
 
@@ -51,34 +47,31 @@ class StreamedResponse extends Response
     }
 
     /**
+     * Factory method for chainability.
+     *
+     * @param callable|null $callback A valid PHP callback or null to set it later
+     * @param int           $status   The response status code
+     * @param array         $headers  An array of response headers
+     *
+     * @return StreamedResponse
+     */
+    public static function create($callback = null, $status = 200, $headers = array())
+    {
+        return new static($callback, $status, $headers);
+    }
+
+    /**
      * Sets the PHP callback associated with this Response.
      *
-     * @param mixed $callback A valid PHP callback
+     * @param callable $callback A valid PHP callback
      */
-    public function setCallback($callback)
+    public function setCallback(callable $callback)
     {
         $this->callback = $callback;
-        if (!is_callable($this->callback)) {
-            throw new \LogicException('The Response callback must be a valid PHP callable.');
-        }
     }
 
     /**
-     * @{inheritdoc}
-     */
-    public function prepare(Request $request)
-    {
-        if ('1.0' != $request->server->get('SERVER_PROTOCOL')) {
-            $this->setProtocolVersion('1.1');
-        }
-
-        $this->headers->set('Cache-Control', 'no-cache');
-
-        parent::prepare($request);
-    }
-
-    /**
-     * @{inheritdoc}
+     * {@inheritdoc}
      *
      * This method only sends the content once.
      */
@@ -98,7 +91,7 @@ class StreamedResponse extends Response
     }
 
     /**
-     * @{inheritdoc}
+     * {@inheritdoc}
      *
      * @throws \LogicException when the content is not null
      */
@@ -110,7 +103,7 @@ class StreamedResponse extends Response
     }
 
     /**
-     * @{inheritdoc}
+     * {@inheritdoc}
      *
      * @return false
      */

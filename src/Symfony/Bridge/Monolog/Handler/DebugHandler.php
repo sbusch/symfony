@@ -30,11 +30,12 @@ class DebugHandler extends TestHandler implements DebugLoggerInterface
         $records = array();
         foreach ($this->records as $record) {
             $records[] = array(
-                'timestamp'    => $record['datetime']->getTimestamp(),
-                'message'      => $record['message'],
-                'priority'     => $record['level'],
+                'timestamp' => $record['datetime']->getTimestamp(),
+                'message' => $record['message'],
+                'priority' => $record['level'],
                 'priorityName' => $record['level_name'],
-                'context'      => $record['context'],
+                'context' => $record['context'],
+                'channel' => isset($record['channel']) ? $record['channel'] : '',
             );
         }
 
@@ -47,7 +48,8 @@ class DebugHandler extends TestHandler implements DebugLoggerInterface
     public function countErrors()
     {
         $cnt = 0;
-        foreach (array(Logger::ERROR, Logger::CRITICAL, Logger::ALERT) as $level) {
+        $levels = array(Logger::ERROR, Logger::CRITICAL, Logger::ALERT, Logger::EMERGENCY);
+        foreach ($levels as $level) {
             if (isset($this->recordsByLevel[$level])) {
                 $cnt += count($this->recordsByLevel[$level]);
             }

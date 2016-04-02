@@ -1,21 +1,13 @@
 Form Component
 ==============
 
-Form provides tools for defining forms, rendering and binding request data to
-related models. Furthermore it provides integration with the Validation
-component.
+The Form component allows you to easily create, process and reuse HTML forms.
 
 Resources
 ---------
 
-Silex integration:
-
-https://github.com/fabpot/Silex/blob/master/src/Silex/Provider/FormServiceProvider.php
-
-Unit tests:
-
-https://github.com/symfony/symfony/tree/master/tests/Symfony/Tests/Component/Form
-
-Documentation:
-
-http://symfony.com/doc/2.0/book/forms.html
+  * [Documentation](https://symfony.com/doc/current/components/form/index.html)
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)

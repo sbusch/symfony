@@ -12,46 +12,127 @@
 namespace Symfony\Component\Validator;
 
 /**
- * Represents a single violation of a constraint.
+ * Default implementation of {@ConstraintViolationInterface}.
  *
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class ConstraintViolation
+class ConstraintViolation implements ConstraintViolationInterface
 {
-    protected $messageTemplate;
-    protected $messageParameters;
-    protected $root;
-    protected $propertyPath;
-    protected $invalidValue;
+    /**
+     * @var string
+     */
+    private $message;
 
-    public function __construct($messageTemplate, array $messageParameters, $root, $propertyPath, $invalidValue)
+    /**
+     * @var string
+     */
+    private $messageTemplate;
+
+    /**
+     * @var array
+     */
+    private $parameters;
+
+    /**
+     * @var int|null
+     */
+    private $plural;
+
+    /**
+     * @var mixed
+     */
+    private $root;
+
+    /**
+     * @var string
+     */
+    private $propertyPath;
+
+    /**
+     * @var mixed
+     */
+    private $invalidValue;
+
+    /**
+     * @var Constraint|null
+     */
+    private $constraint;
+
+    /**
+     * @var mixed
+     */
+    private $code;
+
+    /**
+     * @var mixed
+     */
+    private $cause;
+
+    /**
+     * Creates a new constraint violation.
+     *
+     * @param string          $message         The violation message
+     * @param string          $messageTemplate The raw violation message
+     * @param array           $parameters      The parameters to substitute in the
+     *                                         raw violation message
+     * @param mixed           $root            The value originally passed to the
+     *                                         validator
+     * @param string          $propertyPath    The property path from the root
+     *                                         value to the invalid value
+     * @param mixed           $invalidValue    The invalid value that caused this
+     *                                         violation
+     * @param int|null        $plural          The number for determining the plural
+     *                                         form when translating the message
+     * @param mixed           $code            The error code of the violation
+     * @param Constraint|null $constraint      The constraint whose validation
+     *                                         caused the violation
+     * @param mixed           $cause           The cause of the violation
+     */
+    public function __construct($message, $messageTemplate, array $parameters, $root, $propertyPath, $invalidValue, $plural = null, $code = null, Constraint $constraint = null, $cause = null)
     {
+        $this->message = $message;
         $this->messageTemplate = $messageTemplate;
-        $this->messageParameters = $messageParameters;
+        $this->parameters = $parameters;
+        $this->plural = $plural;
         $this->root = $root;
         $this->propertyPath = $propertyPath;
         $this->invalidValue = $invalidValue;
+        $this->constraint = $constraint;
+        $this->code = $code;
+        $this->cause = $cause;
     }
 
     /**
-     * @return string
+     * Converts the violation into a string for debugging purposes.
+     *
+     * @return string The violation as string.
      */
     public function __toString()
     {
-        $class = (string) (is_object($this->root) ? get_class($this->root) : $this->root);
+        if (is_object($this->root)) {
+            $class = 'Object('.get_class($this->root).')';
+        } elseif (is_array($this->root)) {
+            $class = 'Array';
+        } else {
+            $class = (string) $this->root;
+        }
+
         $propertyPath = (string) $this->propertyPath;
+        $code = $this->code;
 
         if ('' !== $propertyPath && '[' !== $propertyPath[0] && '' !== $class) {
             $class .= '.';
         }
 
-        return $class . $propertyPath . ":\n    " . $this->getMessage();
+        if (!empty($code)) {
+            $code = ' (code '.$code.')';
+        }
+
+        return $class.$propertyPath.":\n    ".$this->getMessage().$code;
     }
 
     /**
-     * @return string
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function getMessageTemplate()
     {
@@ -59,47 +140,78 @@ class ConstraintViolation
     }
 
     /**
-     * @return array
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function getMessageParameters()
+    public function getParameters()
     {
-        return $this->messageParameters;
+        return $this->parameters;
     }
 
     /**
-     * Returns the violation message.
-     *
-     * @return string
-     *
-     * @api
+     * {@inheritdoc}
+     */
+    public function getPlural()
+    {
+        return $this->plural;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getMessage()
     {
-        $parameters = $this->messageParameters;
-
-        foreach ($parameters as $i => $parameter) {
-            if (is_array($parameter)) {
-                $parameters[$i] = 'Array';
-            }
-        }
-
-        return strtr($this->messageTemplate, $parameters);
+        return $this->message;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getRoot()
     {
         return $this->root;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getPropertyPath()
     {
         return $this->propertyPath;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getInvalidValue()
     {
         return $this->invalidValue;
+    }
+
+    /**
+     * Returns the constraint whose validation caused the violation.
+     *
+     * @return Constraint|null The constraint or null if it is not known
+     */
+    public function getConstraint()
+    {
+        return $this->constraint;
+    }
+
+    /**
+     * Returns the cause of the violation.
+     *
+     * @return mixed
+     */
+    public function getCause()
+    {
+        return $this->cause;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCode()
+    {
+        return $this->code;
     }
 }

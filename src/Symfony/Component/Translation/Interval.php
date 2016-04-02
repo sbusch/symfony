@@ -36,10 +36,14 @@ class Interval
     /**
      * Tests if the given number is in the math interval.
      *
-     * @param integer $number   A number
-     * @param string  $interval An interval
+     * @param int    $number   A number
+     * @param string $interval An interval
+     *
+     * @return bool
+     *
+     * @throws \InvalidArgumentException
      */
-    static public function test($number, $interval)
+    public static function test($number, $interval)
     {
         $interval = trim($interval);
 
@@ -71,26 +75,26 @@ class Interval
      *
      * @return string A Regexp (without the delimiters)
      */
-    static public function getIntervalRegexp()
+    public static function getIntervalRegexp()
     {
         return <<<EOF
         ({\s*
-            (\-?\d+[\s*,\s*\-?\d+]*)
+            (\-?\d+(\.\d+)?[\s*,\s*\-?\d+(\.\d+)?]*)
         \s*})
 
             |
 
         (?P<left_delimiter>[\[\]])
             \s*
-            (?P<left>-Inf|\-?\d+)
+            (?P<left>-Inf|\-?\d+(\.\d+)?)
             \s*,\s*
-            (?P<right>\+?Inf|\-?\d+)
+            (?P<right>\+?Inf|\-?\d+(\.\d+)?)
             \s*
         (?P<right_delimiter>[\[\]])
 EOF;
     }
 
-    static private function convertNumber($number)
+    private static function convertNumber($number)
     {
         if ('-Inf' === $number) {
             return log(0);
@@ -98,6 +102,6 @@ EOF;
             return -log(0);
         }
 
-        return (int) $number;
+        return (float) $number;
     }
 }

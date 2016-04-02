@@ -1,9 +1,6 @@
-{% if link %}
-    {% set icon %}
-        <a style="text-decoration: none; margin: 0; padding: 0;" href="{{ path('_profiler', { 'token': token, 'panel': name }) }}">{{ icon }}</a>
-    {% endset %}
-{% endif %}
-<span style="white-space:nowrap; color:#2f2f2f; display:inline-block; min-height:24px; border-right:1px solid #cdcdcd; padding:5px 7px 5px 4px; ">
-     {{ icon|default('') }}
-     {{ text|default('') }}
-</span>
+<div class="sf-toolbar-block sf-toolbar-block-{{ name }} sf-toolbar-status-{{ status|default('normal') }} {{ additional_classes|default('') }}">
+    {% if link is not defined or link %}<a href="{{ path('_profiler', { token: token, panel: name }) }}">{% endif %}
+        <div class="sf-toolbar-icon">{{ icon|default('') }}</div>
+    {% if link|default(false) %}</a>{% endif %}
+        <div class="sf-toolbar-info">{{ text|default('') }}</div>
+</div>

@@ -15,69 +15,55 @@ namespace Symfony\Component\Console\Formatter;
  * Formatter interface for console output.
  *
  * @author Konstantin Kudryashov <ever.zet@gmail.com>
- *
- * @api
  */
 interface OutputFormatterInterface
 {
     /**
      * Sets the decorated flag.
      *
-     * @param Boolean $decorated Whether to decorate the messages or not
-     *
-     * @api
+     * @param bool $decorated Whether to decorate the messages or not
      */
-    function setDecorated($decorated);
+    public function setDecorated($decorated);
 
     /**
      * Gets the decorated flag.
      *
-     * @return Boolean true if the output will decorate messages, false otherwise
-     *
-     * @api
+     * @return bool true if the output will decorate messages, false otherwise
      */
-    function isDecorated();
+    public function isDecorated();
 
     /**
      * Sets a new style.
      *
      * @param string                        $name  The style name
      * @param OutputFormatterStyleInterface $style The style instance
-     *
-     * @api
      */
-    function setStyle($name, OutputFormatterStyleInterface $style);
+    public function setStyle($name, OutputFormatterStyleInterface $style);
 
     /**
      * Checks if output formatter has style with specified name.
      *
-     * @param   string  $name
+     * @param string $name
      *
-     * @return  Boolean
-     *
-     * @api
+     * @return bool
      */
-    function hasStyle($name);
+    public function hasStyle($name);
 
     /**
      * Gets style options from style with specified name.
      *
-     * @param   string  $name
+     * @param string $name
      *
-     * @return  OutputFormatterStyleInterface
-     *
-     * @api
+     * @return OutputFormatterStyleInterface
      */
-    function getStyle($name);
+    public function getStyle($name);
 
     /**
      * Formats a message according to the given styles.
      *
-     * @param  string $message The message to style
+     * @param string $message The message to style
      *
      * @return string The styled message
-     *
-     * @api
      */
-    function format($message);
+    public function format($message);
 }

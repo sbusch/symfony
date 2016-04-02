@@ -14,30 +14,53 @@ namespace Symfony\Component\Form\Extension\Core\Type;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class FileType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $view
-            ->set('multipart', true)
-            ->set('type', 'file')
-            ->set('value', '')
-        ;
-    }
+        if ($options['multiple']) {
+            $view->vars['full_name'] .= '[]';
+            $view->vars['attr']['multiple'] = 'multiple';
+        }
 
-    public function getParent(array $options)
-    {
-        return 'field';
+        $view->vars = array_replace($view->vars, array(
+            'type' => 'file',
+            'value' => '',
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function finishView(FormView $view, FormInterface $form, array $options)
+    {
+        $view
+            ->vars['multipart'] = true
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function configureOptions(OptionsResolver $resolver)
+    {
+        $resolver->setDefaults(array(
+            'compound' => false,
+            'data_class' => 'Symfony\Component\HttpFoundation\File\File',
+            'empty_data' => null,
+            'multiple' => false,
+        ));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBlockPrefix()
     {
         return 'file';
     }

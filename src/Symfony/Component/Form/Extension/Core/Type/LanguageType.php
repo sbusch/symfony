@@ -12,34 +12,34 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceList;
-use Symfony\Component\Locale\Locale;
+use Symfony\Component\Intl\Intl;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class LanguageType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        return array(
-            'choices' => Locale::getDisplayLanguages(\Locale::getDefault()),
-            'value_strategy' => ChoiceList::COPY_CHOICE,
-        );
+        $resolver->setDefaults(array(
+            'choices' => array_flip(Intl::getLanguageBundle()->getLanguageNames()),
+            'choice_translation_domain' => false,
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
-        return 'choice';
+        return __NAMESPACE__.'\ChoiceType';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'language';
     }

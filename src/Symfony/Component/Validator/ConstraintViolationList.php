@@ -12,25 +12,21 @@
 namespace Symfony\Component\Validator;
 
 /**
- * A list of ConstrainViolation objects.
+ * Default implementation of {@ConstraintViolationListInterface}.
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
- *
- * @api
  */
-class ConstraintViolationList implements \IteratorAggregate, \Countable, \ArrayAccess
+class ConstraintViolationList implements \IteratorAggregate, ConstraintViolationListInterface
 {
     /**
-     * The constraint violations
-     *
-     * @var array
+     * @var ConstraintViolationInterface[]
      */
-    protected $violations = array();
+    private $violations = array();
 
     /**
      * Creates a new constraint violation list.
      *
-     * @param array $violations The constraint violations to add to the list
+     * @param ConstraintViolationInterface[] $violations The constraint violations to add to the list
      */
     public function __construct(array $violations = array())
     {
@@ -40,49 +36,77 @@ class ConstraintViolationList implements \IteratorAggregate, \Countable, \ArrayA
     }
 
     /**
-     * @return string
+     * Converts the violation into a string for debugging purposes.
+     *
+     * @return string The violation as string.
      */
     public function __toString()
     {
         $string = '';
 
         foreach ($this->violations as $violation) {
-            $string .= $violation . "\n";
+            $string .= $violation."\n";
         }
 
         return $string;
     }
 
     /**
-     * Add a ConstraintViolation to this list.
-     *
-     * @param ConstraintViolation $violation
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function add(ConstraintViolation $violation)
+    public function add(ConstraintViolationInterface $violation)
     {
         $this->violations[] = $violation;
     }
 
     /**
-     * Merge an existing ConstraintViolationList into this list.
-     *
-     * @param ConstraintViolationList $otherList
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function addAll(ConstraintViolationList $otherList)
+    public function addAll(ConstraintViolationListInterface $otherList)
     {
-        foreach ($otherList->violations as $violation) {
+        foreach ($otherList as $violation) {
             $this->violations[] = $violation;
         }
     }
 
     /**
-     * @see IteratorAggregate
-     *
-     * @api
+     * {@inheritdoc}
+     */
+    public function get($offset)
+    {
+        if (!isset($this->violations[$offset])) {
+            throw new \OutOfBoundsException(sprintf('The offset "%s" does not exist.', $offset));
+        }
+
+        return $this->violations[$offset];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function has($offset)
+    {
+        return isset($this->violations[$offset]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function set($offset, ConstraintViolationInterface $violation)
+    {
+        $this->violations[$offset] = $violation;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function remove($offset)
+    {
+        unset($this->violations[$offset]);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getIterator()
     {
@@ -90,9 +114,7 @@ class ConstraintViolationList implements \IteratorAggregate, \Countable, \ArrayA
     }
 
     /**
-     * @see Countable
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function count()
     {
@@ -100,47 +122,38 @@ class ConstraintViolationList implements \IteratorAggregate, \Countable, \ArrayA
     }
 
     /**
-     * @see ArrayAccess
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function offsetExists($offset)
     {
-        return isset($this->violations[$offset]);
+        return $this->has($offset);
     }
 
     /**
-     * @see ArrayAccess
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function offsetGet($offset)
     {
-        return isset($this->violations[$offset]) ? $this->violations[$offset] : null;
+        return $this->get($offset);
     }
 
     /**
-     * @see ArrayAccess
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $violation)
     {
         if (null === $offset) {
-            $this->violations[] = $value;
+            $this->add($violation);
         } else {
-            $this->violations[$offset] = $value;
+            $this->set($offset, $violation);
         }
     }
 
     /**
-     * @see ArrayAccess
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function offsetUnset($offset)
     {
-        unset($this->violations[$offset]);
+        $this->remove($offset);
     }
-
 }

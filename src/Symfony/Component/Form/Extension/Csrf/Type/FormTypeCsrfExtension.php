@@ -12,85 +12,118 @@
 namespace Symfony\Component\Form\Extension\Csrf\Type;
 
 use Symfony\Component\Form\AbstractTypeExtension;
-use Symfony\Component\Form\Extension\Csrf\EventListener\EnsureCsrfFieldListener;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\Extension\Csrf\EventListener\CsrfValidationListener;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
+/**
+ * @author Bernhard Schussek <bschussek@gmail.com>
+ */
 class FormTypeCsrfExtension extends AbstractTypeExtension
 {
-    private $enabled;
-    private $fieldName;
+    /**
+     * @var CsrfTokenManagerInterface
+     */
+    private $defaultTokenManager;
 
-    public function __construct($enabled = true, $fieldName = '_token')
+    /**
+     * @var bool
+     */
+    private $defaultEnabled;
+
+    /**
+     * @var string
+     */
+    private $defaultFieldName;
+
+    /**
+     * @var TranslatorInterface
+     */
+    private $translator;
+
+    /**
+     * @var null|string
+     */
+    private $translationDomain;
+
+    public function __construct(CsrfTokenManagerInterface $defaultTokenManager, $defaultEnabled = true, $defaultFieldName = '_token', TranslatorInterface $translator = null, $translationDomain = null)
     {
-        $this->enabled = $enabled;
-        $this->fieldName = $fieldName;
+        $this->defaultTokenManager = $defaultTokenManager;
+        $this->defaultEnabled = $defaultEnabled;
+        $this->defaultFieldName = $defaultFieldName;
+        $this->translator = $translator;
+        $this->translationDomain = $translationDomain;
     }
 
     /**
      * Adds a CSRF field to the form when the CSRF protection is enabled.
      *
-     * @param FormBuilder   $builder The form builder
-     * @param array         $options The options
+     * @param FormBuilderInterface $builder The form builder
+     * @param array                $options The options
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         if (!$options['csrf_protection']) {
             return;
         }
 
-        $listener = new EnsureCsrfFieldListener(
-            $builder->getFormFactory(),
-            $options['csrf_field_name'],
-            $options['intention'],
-            $options['csrf_provider']
-        );
-
-        // use a low priority so higher priority listeners don't remove the field
         $builder
-            ->setAttribute('csrf_field_name', $options['csrf_field_name'])
-            ->addEventListener(FormEvents::PRE_SET_DATA, array($listener, 'ensureCsrfField'), -10)
-            ->addEventListener(FormEvents::PRE_BIND, array($listener, 'ensureCsrfField'), -10)
+            ->addEventSubscriber(new CsrfValidationListener(
+                $options['csrf_field_name'],
+                $options['csrf_token_manager'],
+                $options['csrf_token_id'] ?: ($builder->getName() ?: get_class($builder->getType()->getInnerType())),
+                $options['csrf_message'],
+                $this->translator,
+                $this->translationDomain
+            ))
         ;
     }
 
     /**
-     * Removes CSRF fields from all the form views except the root one.
+     * Adds a CSRF field to the root form view.
      *
-     * @param FormView      $view The form view
-     * @param FormInterface $form The form
+     * @param FormView      $view    The form view
+     * @param FormInterface $form    The form
+     * @param array         $options The options
      */
-    public function buildViewBottomUp(FormView $view, FormInterface $form)
+    public function finishView(FormView $view, FormInterface $form, array $options)
     {
-        if ($view->hasParent() && $form->hasAttribute('csrf_field_name')) {
-            $name = $form->getAttribute('csrf_field_name');
+        if ($options['csrf_protection'] && !$view->parent && $options['compound']) {
+            $factory = $form->getConfig()->getFormFactory();
+            $tokenId = $options['csrf_token_id'] ?: ($form->getName() ?: get_class($form->getConfig()->getType()->getInnerType()));
+            $data = (string) $options['csrf_token_manager']->getToken($tokenId);
 
-            if (isset($view[$name])) {
-                unset($view[$name]);
-            }
+            $csrfForm = $factory->createNamed($options['csrf_field_name'], 'Symfony\Component\Form\Extension\Core\Type\HiddenType', $data, array(
+                'mapped' => false,
+            ));
+
+            $view->children[$options['csrf_field_name']] = $csrfForm->createView($view);
         }
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        return array(
-            'csrf_protection'   => $this->enabled,
-            'csrf_field_name'   => $this->fieldName,
-            'csrf_provider'     => null,
-            'intention'         => 'unknown',
-        );
+        $resolver->setDefaults(array(
+            'csrf_protection' => $this->defaultEnabled,
+            'csrf_field_name' => $this->defaultFieldName,
+            'csrf_message' => 'The CSRF token is invalid. Please try to resubmit the form.',
+            'csrf_token_manager' => $this->defaultTokenManager,
+            'csrf_token_id' => null,
+        ));
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function getExtendedType()
     {
-        return 'form';
+        return 'Symfony\Component\Form\Extension\Core\Type\FormType';
     }
 }

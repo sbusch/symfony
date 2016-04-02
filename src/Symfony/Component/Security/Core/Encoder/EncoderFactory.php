@@ -11,10 +11,8 @@
 
 namespace Symfony\Component\Security\Core\Encoder;
 
-use Symfony\Component\Security\Core\User\UserInterface;
-
 /**
- * A generic encoder factory implementation
+ * A generic encoder factory implementation.
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
@@ -28,31 +26,46 @@ class EncoderFactory implements EncoderFactoryInterface
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getEncoder(UserInterface $user)
+    public function getEncoder($user)
     {
-        foreach ($this->encoders as $class => $encoder) {
-            if (!$user instanceof $class) {
-                continue;
+        $encoderKey = null;
+
+        if ($user instanceof EncoderAwareInterface && (null !== $encoderName = $user->getEncoderName())) {
+            if (!array_key_exists($encoderName, $this->encoders)) {
+                throw new \RuntimeException(sprintf('The encoder "%s" was not configured.', $encoderName));
             }
 
-            if (!$encoder instanceof PasswordEncoderInterface) {
-                return $this->encoders[$class] = $this->createEncoder($encoder);
+            $encoderKey = $encoderName;
+        } else {
+            foreach ($this->encoders as $class => $encoder) {
+                if ((is_object($user) && $user instanceof $class) || (!is_object($user) && (is_subclass_of($user, $class) || $user == $class))) {
+                    $encoderKey = $class;
+                    break;
+                }
             }
-
-            return $this->encoders[$class];
         }
 
-        throw new \RuntimeException(sprintf('No encoder has been configured for account "%s".', get_class($user)));
+        if (null === $encoderKey) {
+            throw new \RuntimeException(sprintf('No encoder has been configured for account "%s".', is_object($user) ? get_class($user) : $user));
+        }
+
+        if (!$this->encoders[$encoderKey] instanceof PasswordEncoderInterface) {
+            $this->encoders[$encoderKey] = $this->createEncoder($this->encoders[$encoderKey]);
+        }
+
+        return $this->encoders[$encoderKey];
     }
 
     /**
-     * Creates the actual encoder instance
+     * Creates the actual encoder instance.
      *
      * @param array $config
      *
      * @return PasswordEncoderInterface
+     *
+     * @throws \InvalidArgumentException
      */
     private function createEncoder(array $config)
     {

@@ -1,3 +1,8 @@
+vendor/
+composer.lock
 phpunit.xml
-autoload.php
-/vendor/
+.php_cs.cache
+composer.phar
+package.tar
+/packages.json
+/.phpunit

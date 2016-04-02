@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Security\Core\User;
 
+use Symfony\Component\Security\Core\Role\Role;
+
 /**
  * Represents the interface that all user classes must implement.
  *
@@ -45,9 +47,9 @@ interface UserInterface
      * and populated in any number of different ways when the user object
      * is created.
      *
-     * @return Role[] The user roles
+     * @return (Role|string)[] The user roles
      */
-    function getRoles();
+    public function getRoles();
 
     /**
      * Returns the password used to authenticate the user.
@@ -57,31 +59,29 @@ interface UserInterface
      *
      * @return string The password
      */
-    function getPassword();
+    public function getPassword();
 
     /**
      * Returns the salt that was originally used to encode the password.
      *
      * This can return null if the password was not encoded using a salt.
      *
-     * @return string The salt
+     * @return string|null The salt
      */
-    function getSalt();
+    public function getSalt();
 
     /**
      * Returns the username used to authenticate the user.
      *
      * @return string The username
      */
-    function getUsername();
+    public function getUsername();
 
     /**
      * Removes sensitive data from the user.
      *
      * This is important if, at any given point, sensitive information like
      * the plain-text password is stored on this object.
-     *
-     * @return void
      */
-    function eraseCredentials();
+    public function eraseCredentials();
 }

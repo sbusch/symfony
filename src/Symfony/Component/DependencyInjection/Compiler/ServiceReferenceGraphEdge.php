@@ -29,7 +29,7 @@ class ServiceReferenceGraphEdge
      *
      * @param ServiceReferenceGraphNode $sourceNode
      * @param ServiceReferenceGraphNode $destNode
-     * @param string $value
+     * @param string                    $value
      */
     public function __construct(ServiceReferenceGraphNode $sourceNode, ServiceReferenceGraphNode $destNode, $value = null)
     {
@@ -39,7 +39,7 @@ class ServiceReferenceGraphEdge
     }
 
     /**
-     * Returns the value of the edge
+     * Returns the value of the edge.
      *
      * @return ServiceReferenceGraphNode
      */
@@ -49,7 +49,7 @@ class ServiceReferenceGraphEdge
     }
 
     /**
-     * Returns the source node
+     * Returns the source node.
      *
      * @return ServiceReferenceGraphNode
      */
@@ -59,7 +59,7 @@ class ServiceReferenceGraphEdge
     }
 
     /**
-     * Returns the destination node
+     * Returns the destination node.
      *
      * @return ServiceReferenceGraphNode
      */

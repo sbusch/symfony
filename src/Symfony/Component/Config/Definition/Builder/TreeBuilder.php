@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Config\Definition\Builder;
 
+use Symfony\Component\Config\Definition\NodeInterface;
+
 /**
  * This is the entry class for building a config tree.
  *
@@ -25,9 +27,9 @@ class TreeBuilder implements NodeParentInterface
     /**
      * Creates the root node.
      *
-     * @param string      $name     The name of the root node
-     * @param string      $type     The type of the root node
-     * @param NodeBuilder $builder  A custom node builder instance
+     * @param string      $name    The name of the root node
+     * @param string      $type    The type of the root node
+     * @param NodeBuilder $builder A custom node builder instance
      *
      * @return ArrayNodeDefinition|NodeDefinition The root node (as an ArrayNodeDefinition when the type is 'array')
      *
@@ -44,6 +46,8 @@ class TreeBuilder implements NodeParentInterface
      * Builds the tree.
      *
      * @return NodeInterface
+     *
+     * @throws \RuntimeException
      */
     public function buildTree()
     {

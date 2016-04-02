@@ -12,33 +12,21 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormInterface;
-use Symfony\Component\Form\FormView;
 
 class RadioType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function buildView(FormView $view, FormInterface $form)
+    public function getParent()
     {
-        if ($view->hasParent()) {
-            $view->set('full_name', $view->getParent()->get('full_name'));
-        }
+        return __NAMESPACE__.'\CheckboxType';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
-    {
-        return 'checkbox';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'radio';
     }

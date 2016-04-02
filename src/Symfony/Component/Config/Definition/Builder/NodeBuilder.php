@@ -22,16 +22,18 @@ class NodeBuilder implements NodeParentInterface
     protected $nodeMapping;
 
     /**
-     * Constructor
-     *
+     * Constructor.
      */
     public function __construct()
     {
         $this->nodeMapping = array(
-            'variable'    => __NAMESPACE__.'\\VariableNodeDefinition',
-            'scalar'      => __NAMESPACE__.'\\ScalarNodeDefinition',
-            'boolean'     => __NAMESPACE__.'\\BooleanNodeDefinition',
-            'array'       => __NAMESPACE__.'\\ArrayNodeDefinition',
+            'variable' => __NAMESPACE__.'\\VariableNodeDefinition',
+            'scalar' => __NAMESPACE__.'\\ScalarNodeDefinition',
+            'boolean' => __NAMESPACE__.'\\BooleanNodeDefinition',
+            'integer' => __NAMESPACE__.'\\IntegerNodeDefinition',
+            'float' => __NAMESPACE__.'\\FloatNodeDefinition',
+            'array' => __NAMESPACE__.'\\ArrayNodeDefinition',
+            'enum' => __NAMESPACE__.'\\EnumNodeDefinition',
         );
     }
 
@@ -83,6 +85,42 @@ class NodeBuilder implements NodeParentInterface
     public function booleanNode($name)
     {
         return $this->node($name, 'boolean');
+    }
+
+    /**
+     * Creates a child integer node.
+     *
+     * @param string $name the name of the node
+     *
+     * @return IntegerNodeDefinition The child node
+     */
+    public function integerNode($name)
+    {
+        return $this->node($name, 'integer');
+    }
+
+    /**
+     * Creates a child float node.
+     *
+     * @param string $name the name of the node
+     *
+     * @return FloatNodeDefinition The child node
+     */
+    public function floatNode($name)
+    {
+        return $this->node($name, 'float');
+    }
+
+    /**
+     * Creates a child EnumNode.
+     *
+     * @param string $name
+     *
+     * @return EnumNodeDefinition
+     */
+    public function enumNode($name)
+    {
+        return $this->node($name, 'enum');
     }
 
     /**
@@ -142,6 +180,8 @@ class NodeBuilder implements NodeParentInterface
      *         ->end()
      *     ;
      *
+     * @param NodeDefinition $node
+     *
      * @return NodeBuilder This node builder
      */
     public function append(NodeDefinition $node)
@@ -164,7 +204,7 @@ class NodeBuilder implements NodeParentInterface
     /**
      * Adds or overrides a node Type.
      *
-     * @param string $type The name of the type
+     * @param string $type  The name of the type
      * @param string $class The fully qualified name the node definition class
      *
      * @return NodeBuilder This node builder
@@ -202,5 +242,4 @@ class NodeBuilder implements NodeParentInterface
 
         return $class;
     }
-
 }

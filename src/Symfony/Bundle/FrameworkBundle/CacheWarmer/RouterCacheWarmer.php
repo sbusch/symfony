@@ -27,7 +27,7 @@ class RouterCacheWarmer implements CacheWarmerInterface
     /**
      * Constructor.
      *
-     * @param Router $router A Router instance
+     * @param RouterInterface $router A Router instance
      */
     public function __construct(RouterInterface $router)
     {
@@ -49,7 +49,7 @@ class RouterCacheWarmer implements CacheWarmerInterface
     /**
      * Checks whether this warmer is optional or not.
      *
-     * @return Boolean always true
+     * @return bool always true
      */
     public function isOptional()
     {

@@ -34,12 +34,7 @@ class DelegatingLoader extends Loader
     }
 
     /**
-     * Loads a resource.
-     *
-     * @param mixed  $resource A resource
-     * @param string $type     The resource type
-     *
-     * @throws FileLoaderLoadException if no loader is found.
+     * {@inheritdoc}
      */
     public function load($resource, $type = null)
     {
@@ -51,15 +46,10 @@ class DelegatingLoader extends Loader
     }
 
     /**
-     * Returns true if this class supports the given resource.
-     *
-     * @param mixed  $resource A resource
-     * @param string $type     The resource type
-     *
-     * @return Boolean true if this class supports the given resource, false otherwise
+     * {@inheritdoc}
      */
     public function supports($resource, $type = null)
     {
-        return false === $this->resolver->resolve($resource, $type) ? false : true;
+        return false !== $this->resolver->resolve($resource, $type);
     }
 }

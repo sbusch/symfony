@@ -11,33 +11,29 @@
 
 namespace Symfony\Component\Validator\Constraints;
 
+use Symfony\Component\Intl\Intl;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * Validates whether a value is a valid country code
+ * Validates whether a value is a valid country code.
  *
- * @author Bernhard Schussek <bernhard.schussek@symfony.com>
- *
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class CountryValidator extends ConstraintValidator
 {
     /**
-     * Checks if the passed value is valid.
-     *
-     * @param mixed      $value      The value that should be validated
-     * @param Constraint $constraint The constraint for the validation
-     *
-     * @return Boolean Whether or not the value is valid
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function isValid($value, Constraint $constraint)
+    public function validate($value, Constraint $constraint)
     {
+        if (!$constraint instanceof Country) {
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Country');
+        }
+
         if (null === $value || '' === $value) {
-            return true;
+            return;
         }
 
         if (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
@@ -45,13 +41,13 @@ class CountryValidator extends ConstraintValidator
         }
 
         $value = (string) $value;
+        $countries = Intl::getRegionBundle()->getCountryNames();
 
-        if (!in_array($value, \Symfony\Component\Locale\Locale::getCountries())) {
-            $this->context->addViolation($constraint->message, array('{{ value }}' => $value));
-
-            return false;
+        if (!isset($countries[$value])) {
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Country::NO_SUCH_COUNTRY_ERROR)
+                ->addViolation();
         }
-
-        return true;
     }
 }

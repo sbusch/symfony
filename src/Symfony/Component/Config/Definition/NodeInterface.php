@@ -26,36 +26,37 @@ interface NodeInterface
      *
      * @return string The name of the node
      */
-    function getName();
+    public function getName();
 
     /**
      * Returns the path of the node.
      *
      * @return string The node path
      */
-    function getPath();
+    public function getPath();
 
     /**
      * Returns true when the node is required.
      *
-     * @return Boolean If the node is required
+     * @return bool If the node is required
      */
-    function isRequired();
+    public function isRequired();
 
     /**
      * Returns true when the node has a default value.
      *
-     * @return Boolean If the node has a default value
+     * @return bool If the node has a default value
      */
-    function hasDefaultValue();
+    public function hasDefaultValue();
 
     /**
      * Returns the default value of the node.
      *
      * @return mixed The default value
+     *
      * @throws \RuntimeException if the node has no default value
      */
-    function getDefaultValue();
+    public function getDefaultValue();
 
     /**
      * Normalizes the supplied value.
@@ -64,7 +65,7 @@ interface NodeInterface
      *
      * @return mixed The normalized value
      */
-    function normalize($value);
+    public function normalize($value);
 
     /**
      * Merges two values together.
@@ -74,7 +75,7 @@ interface NodeInterface
      *
      * @return mixed The merged values
      */
-    function merge($leftSide, $rightSide);
+    public function merge($leftSide, $rightSide);
 
     /**
      * Finalizes a value.
@@ -83,5 +84,5 @@ interface NodeInterface
      *
      * @return mixed The finalized value
      */
-    function finalize($value);
+    public function finalize($value);
 }

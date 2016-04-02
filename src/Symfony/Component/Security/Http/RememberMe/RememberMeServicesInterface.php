@@ -1,9 +1,4 @@
 <?php
-namespace Symfony\Component\Security\Http\RememberMe;
-
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 
 /*
  * This file is part of the Symfony package.
@@ -13,6 +8,12 @@ use Symfony\Component\HttpFoundation\Request;
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
+namespace Symfony\Component\Security\Http\RememberMe;
+
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Interface that needs to be implemented by classes which provide remember-me
@@ -35,8 +36,8 @@ interface RememberMeServicesInterface
     const COOKIE_ATTR_NAME = '_security_remember_me_cookie';
 
     /**
-     * This method will be called whenever the SecurityContext does not contain
-     * an TokenInterface object and the framework wishes to provide an implementation
+     * This method will be called whenever the TokenStorage does not contain
+     * a TokenInterface object and the framework wishes to provide an implementation
      * with an opportunity to authenticate the request using remember-me capabilities.
      *
      * No attempt whatsoever is made to determine whether the browser has requested
@@ -51,7 +52,7 @@ interface RememberMeServicesInterface
      *
      * @return TokenInterface
      */
-    function autoLogin(Request $request);
+    public function autoLogin(Request $request);
 
     /**
      * Called whenever an interactive authentication attempt was made, but the
@@ -61,7 +62,7 @@ interface RememberMeServicesInterface
      *
      * @param Request $request
      */
-    function loginFail(Request $request);
+    public function loginFail(Request $request);
 
     /**
      * Called whenever an interactive authentication attempt is successful
@@ -78,5 +79,5 @@ interface RememberMeServicesInterface
      * @param Response       $response
      * @param TokenInterface $token
      */
-    function loginSuccess(Request $request, Response $response, TokenInterface $token);
+    public function loginSuccess(Request $request, Response $response, TokenInterface $token);
 }

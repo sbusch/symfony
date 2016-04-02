@@ -1,12 +1,12 @@
 <?php
 
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional;
@@ -17,19 +17,10 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class WebTestCase extends BaseWebTestCase
 {
-    static public function assertRedirect($response, $location)
+    public static function assertRedirect($response, $location)
     {
         self::assertTrue($response->isRedirect(), 'Response is not a redirect, got status code: '.$response->getStatusCode());
         self::assertEquals('http://localhost'.$location, $response->headers->get('Location'));
-    }
-
-    protected function setUp()
-    {
-        if (!class_exists('Twig_Environment')) {
-            $this->markTestSkipped('Twig is not available.');
-        }
-
-        parent::setUp();
     }
 
     protected function deleteTmpDir($testCase)
@@ -42,14 +33,14 @@ class WebTestCase extends BaseWebTestCase
         $fs->remove($dir);
     }
 
-    static protected function getKernelClass()
+    protected static function getKernelClass()
     {
         require_once __DIR__.'/app/AppKernel.php';
 
-        return 'Symfony\Bundle\FrameworkBundle\Tests\Functional\AppKernel';
+        return 'Symfony\Bundle\FrameworkBundle\Tests\Functional\app\AppKernel';
     }
 
-    static protected function createKernel(array $options = array())
+    protected static function createKernel(array $options = array())
     {
         $class = self::getKernelClass();
 
@@ -60,7 +51,7 @@ class WebTestCase extends BaseWebTestCase
         return new $class(
             $options['test_case'],
             isset($options['root_config']) ? $options['root_config'] : 'config.yml',
-            isset($options['environment']) ? $options['environment'] : 'frameworkbundletest',
+            isset($options['environment']) ? $options['environment'] : 'frameworkbundletest'.strtolower($options['test_case']),
             isset($options['debug']) ? $options['debug'] : true
         );
     }

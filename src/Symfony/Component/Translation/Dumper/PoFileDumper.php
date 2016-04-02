@@ -14,29 +14,40 @@ namespace Symfony\Component\Translation\Dumper;
 use Symfony\Component\Translation\MessageCatalogue;
 
 /**
- * PoFileDumper generates a gettext formated string representation of a message catalogue.
+ * PoFileDumper generates a gettext formatted string representation of a message catalogue.
  *
  * @author Stealth35
  */
 class PoFileDumper extends FileDumper
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function format(MessageCatalogue $messages, $domain = 'messages')
+    public function formatCatalogue(MessageCatalogue $messages, $domain, array $options = array())
     {
-        $output = '';
+        $output = 'msgid ""'."\n";
+        $output .= 'msgstr ""'."\n";
+        $output .= '"Content-Type: text/plain; charset=UTF-8\n"'."\n";
+        $output .= '"Content-Transfer-Encoding: 8bit\n"'."\n";
+        $output .= '"Language: '.$messages->getLocale().'\n"'."\n";
+        $output .= "\n";
 
+        $newLine = false;
         foreach ($messages->all($domain) as $source => $target) {
-            $output .= sprintf("msgid \"%s\"\n", $this->escape($source));
-            $output .= sprintf("msgstr \"%s\"\n\n", $this->escape($target));
+            if ($newLine) {
+                $output .= "\n";
+            } else {
+                $newLine = true;
+            }
+            $output .= sprintf('msgid "%s"'."\n", $this->escape($source));
+            $output .= sprintf('msgstr "%s"', $this->escape($target));
         }
 
         return $output;
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected function getExtension()
     {

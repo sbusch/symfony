@@ -31,7 +31,8 @@ class TranslationLoader
 
     /**
      * Adds a loader to the translation extractor.
-     * @param string $format The format of the loader
+     *
+     * @param string          $format The format of the loader
      * @param LoaderInterface $loader
      */
     public function addLoader($format, LoaderInterface $loader)
@@ -42,12 +43,16 @@ class TranslationLoader
     /**
      * Loads translation messages from a directory to the catalogue.
      *
-     * @param string $directory the directory to look into
+     * @param string           $directory the directory to look into
      * @param MessageCatalogue $catalogue the catalogue
      */
     public function loadMessages($directory, MessageCatalogue $catalogue)
     {
-        foreach($this->loaders as $format => $loader) {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        foreach ($this->loaders as $format => $loader) {
             // load any existing translation files
             $finder = new Finder();
             $extension = $catalogue->getLocale().'.'.$format;

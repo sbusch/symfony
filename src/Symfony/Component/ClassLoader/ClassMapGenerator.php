@@ -12,19 +12,19 @@
 namespace Symfony\Component\ClassLoader;
 
 /**
- * ClassMapGenerator
+ * ClassMapGenerator.
  *
  * @author Gyula Sallai <salla016@gmail.com>
  */
 class ClassMapGenerator
 {
     /**
-     * Generate a class map file
+     * Generate a class map file.
      *
      * @param array|string $dirs Directories or a single path to search in
-     * @param string $file The name of the class map file
+     * @param string       $file The name of the class map file
      */
-    static public function dump($dirs, $file)
+    public static function dump($dirs, $file)
     {
         $dirs = (array) $dirs;
         $maps = array();
@@ -37,13 +37,13 @@ class ClassMapGenerator
     }
 
     /**
-     * Iterate over all files in the given directory searching for classes
+     * Iterate over all files in the given directory searching for classes.
      *
-     * @param Iterator|string $dir The directory to search in or an iterator
+     * @param \Iterator|string $dir The directory to search in or an iterator
      *
      * @return array A class map array
      */
-    static public function createMap($dir)
+    public static function createMap($dir)
     {
         if (is_string($dir)) {
             $dir = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
@@ -64,34 +64,38 @@ class ClassMapGenerator
 
             $classes = self::findClasses($path);
 
+            if (PHP_VERSION_ID >= 70000) {
+                // PHP 7 memory manager will not release after token_get_all(), see https://bugs.php.net/70098
+                gc_mem_caches();
+            }
+
             foreach ($classes as $class) {
                 $map[$class] = $path;
             }
-
         }
 
         return $map;
     }
 
     /**
-     * Extract the classes in the given file
+     * Extract the classes in the given file.
      *
      * @param string $path The file to check
      *
      * @return array The found classes
      */
-    static private function findClasses($path)
+    private static function findClasses($path)
     {
         $contents = file_get_contents($path);
-        $tokens   = token_get_all($contents);
+        $tokens = token_get_all($contents);
 
         $classes = array();
 
         $namespace = '';
-        for ($i = 0, $max = count($tokens); $i < $max; $i++) {
+        for ($i = 0; isset($tokens[$i]); ++$i) {
             $token = $tokens[$i];
 
-            if (is_string($token)) {
+            if (!isset($token[1])) {
                 continue;
             }
 
@@ -101,29 +105,46 @@ class ClassMapGenerator
                 case T_NAMESPACE:
                     $namespace = '';
                     // If there is a namespace, extract it
-                    while (($t = $tokens[++$i]) && is_array($t)) {
-                        if (in_array($t[0], array(T_STRING, T_NS_SEPARATOR))) {
-                            $namespace .= $t[1];
+                    while (isset($tokens[++$i][1])) {
+                        if (in_array($tokens[$i][0], array(T_STRING, T_NS_SEPARATOR))) {
+                            $namespace .= $tokens[$i][1];
                         }
                     }
                     $namespace .= '\\';
                     break;
                 case T_CLASS:
                 case T_INTERFACE:
-                    // Find the classname
-                    while (($t = $tokens[++$i]) && is_array($t)) {
-                        if (T_STRING === $t[0]) {
-                            $class .= $t[1];
-                        } elseif ($class !== '' && T_WHITESPACE == $t[0]) {
+                case T_TRAIT:
+                    // Skip usage of ::class constant
+                    $isClassConstant = false;
+                    for ($j = $i - 1; $j > 0; --$j) {
+                        if (!isset($tokens[$j][1])) {
+                            break;
+                        }
+
+                        if (T_DOUBLE_COLON === $tokens[$j][0]) {
+                            $isClassConstant = true;
+                            break;
+                        } elseif (!in_array($tokens[$j][0], array(T_WHITESPACE, T_DOC_COMMENT, T_COMMENT))) {
                             break;
                         }
                     }
 
-                    if (empty($namespace)) {
-                        $classes[] = $class;
-                    } else {
-                        $classes[] = $namespace . $class;
+                    if ($isClassConstant) {
+                        break;
                     }
+
+                    // Find the classname
+                    while (isset($tokens[++$i][1])) {
+                        $t = $tokens[$i];
+                        if (T_STRING === $t[0]) {
+                            $class .= $t[1];
+                        } elseif ('' !== $class && T_WHITESPACE === $t[0]) {
+                            break;
+                        }
+                    }
+
+                    $classes[] = ltrim($namespace.$class, '\\');
                     break;
                 default:
                     break;

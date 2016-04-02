@@ -18,29 +18,41 @@ namespace Symfony\Component\DomCrawler\Field;
  */
 abstract class FormField
 {
+    /**
+     * @var \DOMElement
+     */
     protected $node;
+    /**
+     * @var string
+     */
     protected $name;
+    /**
+     * @var string
+     */
     protected $value;
+    /**
+     * @var \DOMDocument
+     */
     protected $document;
+    /**
+     * @var \DOMXPath
+     */
     protected $xpath;
+    /**
+     * @var bool
+     */
     protected $disabled;
 
     /**
      * Constructor.
      *
-     * @param \DOMNode $node The node associated with this field
+     * @param \DOMElement $node The node associated with this field
      */
-    public function __construct(\DOMNode $node)
+    public function __construct(\DOMElement $node)
     {
         $this->node = $node;
         $this->name = $node->getAttribute('name');
-
-        $this->document = new \DOMDocument('1.0', 'UTF-8');
-        $this->node = $this->document->importNode($this->node, true);
-
-        $root = $this->document->appendChild($this->document->createElement('_root'));
-        $root->appendChild($this->node);
-        $this->xpath = new \DOMXPath($this->document);
+        $this->xpath = new \DOMXPath($node->ownerDocument);
 
         $this->initialize();
     }
@@ -69,8 +81,6 @@ abstract class FormField
      * Sets the value of the field.
      *
      * @param string $value The value of the field
-     *
-     * @api
      */
     public function setValue($value)
     {
@@ -80,13 +90,18 @@ abstract class FormField
     /**
      * Returns true if the field should be included in the submitted values.
      *
-     * @return Boolean true if the field should be included in the submitted values, false otherwise
+     * @return bool true if the field should be included in the submitted values, false otherwise
      */
     public function hasValue()
     {
         return true;
     }
 
+    /**
+     * Check if the current field is disabled.
+     *
+     * @return bool
+     */
     public function isDisabled()
     {
         return $this->node->hasAttribute('disabled');

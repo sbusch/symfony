@@ -2,11 +2,12 @@ Doctrine Bridge
 ===============
 
 Provides integration for [Doctrine](http://www.doctrine-project.org/) with
-various Symfony2 components.
+various Symfony components.
 
 Resources
 ---------
 
-Unit tests:
-
-https://github.com/symfony/symfony/tree/master/tests/Symfony/Tests/Bridge/Doctrine
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)

@@ -12,24 +12,29 @@
 namespace Symfony\Component\Form\Extension\Core\EventListener;
 
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\Event\FilterDataEvent;
+use Symfony\Component\Form\FormEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Adds a protocol to a URL if it doesn't already have one.
  *
- * @author Bernhard Schussek <bernhard.schussek@symfony-project.com>
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class FixUrlProtocolListener implements EventSubscriberInterface
 {
     private $defaultProtocol;
 
+    /**
+     * Constructor.
+     *
+     * @param string|null $defaultProtocol The URL scheme to add when there is none or null to not modify the data
+     */
     public function __construct($defaultProtocol = 'http')
     {
         $this->defaultProtocol = $defaultProtocol;
     }
 
-    public function onBindNormData(FilterDataEvent $event)
+    public function onSubmit(FormEvent $event)
     {
         $data = $event->getData();
 
@@ -38,8 +43,8 @@ class FixUrlProtocolListener implements EventSubscriberInterface
         }
     }
 
-    static public function getSubscribedEvents()
+    public static function getSubscribedEvents()
     {
-        return array(FormEvents::BIND_NORM_DATA => 'onBindNormData');
+        return array(FormEvents::SUBMIT => 'onSubmit');
     }
 }

@@ -1,25 +1,28 @@
 <?php
 
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional\Bundle\TestBundle\Controller;
 
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\DependencyInjection\ContainerAware;
 
-class SessionController extends ContainerAware
+class SessionController implements ContainerAwareInterface
 {
-    public function welcomeAction($name=null)
+    use ContainerAwareTrait;
+
+    public function welcomeAction(Request $request, $name = null)
     {
-        $request = $this->container->get('request');
         $session = $request->getSession();
 
         // new session case
@@ -40,29 +43,27 @@ class SessionController extends ContainerAware
         return new Response(sprintf('Welcome back %s, nice to meet you.', $name));
     }
 
-    public function logoutAction()
+    public function logoutAction(Request $request)
     {
-        $request = $this->container->get('request')->getSession('session')->clear();
+        $request->getSession('session')->invalidate();
 
         return new Response('Session cleared.');
     }
 
-    public function setFlashAction($message)
+    public function setFlashAction(Request $request, $message)
     {
-        $request = $this->container->get('request');
         $session = $request->getSession();
         $session->getFlashBag()->set('notice', $message);
 
         return new RedirectResponse($this->container->get('router')->generate('session_showflash'));
     }
 
-    public function showFlashAction()
+    public function showFlashAction(Request $request)
     {
-        $request = $this->container->get('request');
         $session = $request->getSession();
 
         if ($session->getFlashBag()->has('notice')) {
-            $output = $session->getFlashBag()->get('notice');
+            list($output) = $session->getFlashBag()->get('notice');
         } else {
             $output = 'No flash was set.';
         }

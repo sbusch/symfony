@@ -12,18 +12,19 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\DataTransformer\NumberToLocalizedStringTransformer;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class NumberType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->appendClientTransformer(new NumberToLocalizedStringTransformer(
-            $options['precision'],
+        $builder->addViewTransformer(new NumberToLocalizedStringTransformer(
+            $options['scale'],
             $options['grouping'],
             $options['rounding_mode']
         ));
@@ -32,46 +33,33 @@ class NumberType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        return array(
-            // default precision is locale specific (usually around 3)
-            'precision'     => null,
-            'grouping'      => false,
-            'rounding_mode' => \NumberFormatter::ROUND_HALFUP,
-        );
+        $resolver->setDefaults(array(
+            // default scale is locale specific (usually around 3)
+            'scale' => null,
+            'grouping' => false,
+            'rounding_mode' => NumberToLocalizedStringTransformer::ROUND_HALF_UP,
+            'compound' => false,
+        ));
+
+        $resolver->setAllowedValues('rounding_mode', array(
+            NumberToLocalizedStringTransformer::ROUND_FLOOR,
+            NumberToLocalizedStringTransformer::ROUND_DOWN,
+            NumberToLocalizedStringTransformer::ROUND_HALF_DOWN,
+            NumberToLocalizedStringTransformer::ROUND_HALF_EVEN,
+            NumberToLocalizedStringTransformer::ROUND_HALF_UP,
+            NumberToLocalizedStringTransformer::ROUND_UP,
+            NumberToLocalizedStringTransformer::ROUND_CEILING,
+        ));
+
+        $resolver->setAllowedTypes('scale', array('null', 'int'));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getAllowedOptionValues(array $options)
-    {
-        return array(
-            'rounding_mode' => array(
-                \NumberFormatter::ROUND_FLOOR,
-                \NumberFormatter::ROUND_DOWN,
-                \NumberFormatter::ROUND_HALFDOWN,
-                \NumberFormatter::ROUND_HALFEVEN,
-                \NumberFormatter::ROUND_HALFUP,
-                \NumberFormatter::ROUND_UP,
-                \NumberFormatter::ROUND_CEILING,
-            ),
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getParent(array $options)
-    {
-        return 'field';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'number';
     }

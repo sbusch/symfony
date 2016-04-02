@@ -15,51 +15,43 @@ namespace Symfony\Component\Console\Formatter;
  * Formatter style interface for defining styles.
  *
  * @author Konstantin Kudryashov <ever.zet@gmail.com>
- *
- * @api
  */
 interface OutputFormatterStyleInterface
 {
     /**
      * Sets style foreground color.
      *
-     * @param   string  $color  color name
-     *
-     * @api
+     * @param string $color The color name
      */
-    function setForeground($color = null);
+    public function setForeground($color = null);
 
     /**
      * Sets style background color.
      *
-     * @param   string  $color  color name
-     *
-     * @api
+     * @param string $color The color name
      */
-    function setBackground($color = null);
+    public function setBackground($color = null);
 
     /**
      * Sets some specific style option.
      *
-     * @param   string  $option     option name
-     *
-     * @api
+     * @param string $option The option name
      */
-    function setOption($option);
+    public function setOption($option);
 
     /**
      * Unsets some specific style option.
      *
-     * @param   string  $option     option name
+     * @param string $option The option name
      */
-    function unsetOption($option);
+    public function unsetOption($option);
 
     /**
      * Sets multiple style options at once.
      *
-     * @param   array   $options
+     * @param array $options
      */
-    function setOptions(array $options);
+    public function setOptions(array $options);
 
     /**
      * Applies the style to a given text.
@@ -68,5 +60,5 @@ interface OutputFormatterStyleInterface
      *
      * @return string
      */
-    function apply($text);
+    public function apply($text);
 }

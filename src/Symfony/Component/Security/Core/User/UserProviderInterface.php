@@ -43,12 +43,9 @@ interface UserProviderInterface
      *
      * @return UserInterface
      *
-     * @see UsernameNotFoundException
-     *
      * @throws UsernameNotFoundException if the user is not found
-     *
      */
-    function loadUserByUsername($username);
+    public function loadUserByUsername($username);
 
     /**
      * Refreshes the user for the account interface.
@@ -57,20 +54,21 @@ interface UserProviderInterface
      * totally reloaded (e.g. from the database), or if the UserInterface
      * object can just be merged into some internal array of users / identity
      * map.
+     *
      * @param UserInterface $user
      *
      * @return UserInterface
      *
      * @throws UnsupportedUserException if the account is not supported
      */
-    function refreshUser(UserInterface $user);
+    public function refreshUser(UserInterface $user);
 
     /**
-     * Whether this provider supports the given user class
+     * Whether this provider supports the given user class.
      *
      * @param string $class
      *
-     * @return Boolean
+     * @return bool
      */
-    function supportsClass($class);
+    public function supportsClass($class);
 }

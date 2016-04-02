@@ -34,23 +34,39 @@ class RouterHelper extends Helper
     }
 
     /**
-     * Generates a URL from the given parameters.
+     * Generates a URL reference (as an absolute or relative path) to the route with the given parameters.
      *
-     * @param string  $name       The name of the route
-     * @param mixed   $parameters An array of parameters
-     * @param Boolean $absolute   Whether to generate an absolute URL
+     * @param string $name       The name of the route
+     * @param mixed  $parameters An array of parameters
+     * @param bool   $relative   Whether to generate a relative or absolute path
      *
-     * @return string The generated URL
+     * @return string The generated URL reference
+     *
+     * @see UrlGeneratorInterface
      */
-    public function generate($name, $parameters = array(), $absolute = false)
+    public function path($name, $parameters = array(), $relative = false)
     {
-        return $this->generator->generate($name, $parameters, $absolute);
+        return $this->generator->generate($name, $parameters, $relative ? UrlGeneratorInterface::RELATIVE_PATH : UrlGeneratorInterface::ABSOLUTE_PATH);
     }
 
     /**
-     * Returns the canonical name of this helper.
+     * Generates a URL reference (as an absolute URL or network path) to the route with the given parameters.
      *
-     * @return string The canonical name
+     * @param string $name           The name of the route
+     * @param mixed  $parameters     An array of parameters
+     * @param bool   $schemeRelative Whether to omit the scheme in the generated URL reference
+     *
+     * @return string The generated URL reference
+     *
+     * @see UrlGeneratorInterface
+     */
+    public function url($name, $parameters = array(), $schemeRelative = false)
+    {
+        return $this->generator->generate($name, $parameters, $schemeRelative ? UrlGeneratorInterface::NETWORK_PATH : UrlGeneratorInterface::ABSOLUTE_URL);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getName()
     {

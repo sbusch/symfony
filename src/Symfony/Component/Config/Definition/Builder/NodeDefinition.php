@@ -12,6 +12,7 @@
 namespace Symfony\Component\Config\Definition\Builder;
 
 use Symfony\Component\Config\Definition\NodeInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
 
 /**
  * This class provides a fluent interface for defining a node.
@@ -24,37 +25,38 @@ abstract class NodeDefinition implements NodeParentInterface
     protected $normalization;
     protected $validation;
     protected $defaultValue;
-    protected $default;
-    protected $required;
+    protected $default = false;
+    protected $required = false;
     protected $merge;
-    protected $allowEmptyValue;
+    protected $allowEmptyValue = true;
     protected $nullEquivalent;
-    protected $trueEquivalent;
-    protected $falseEquivalent;
-    protected $parent;
-    protected $info;
-    protected $example;
+    protected $trueEquivalent = true;
+    protected $falseEquivalent = false;
 
     /**
-     * Constructor
+     * @var NodeParentInterface|null
+     */
+    protected $parent;
+    protected $attributes = array();
+
+    /**
+     * Constructor.
      *
-     * @param string                $name   The name of the node
-     * @param NodeParentInterface   $parent The parent
+     * @param string                   $name   The name of the node
+     * @param NodeParentInterface|null $parent The parent
      */
     public function __construct($name, NodeParentInterface $parent = null)
     {
         $this->parent = $parent;
         $this->name = $name;
-        $this->default = false;
-        $this->required = false;
-        $this->trueEquivalent = true;
-        $this->falseEquivalent = false;
     }
 
     /**
      * Sets the parent node.
      *
      * @param NodeParentInterface $parent The parent
+     *
+     * @return NodeDefinition|$this
      */
     public function setParent(NodeParentInterface $parent)
     {
@@ -68,13 +70,11 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param string $info The info text
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
-    public function setInfo($info)
+    public function info($info)
     {
-        $this->info = $info;
-
-        return $this;
+        return $this->attribute('info', $info);
     }
 
     /**
@@ -82,11 +82,24 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param string|array $example
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
-    public function setExample($example)
+    public function example($example)
     {
-        $this->example = $example;
+        return $this->attribute('example', $example);
+    }
+
+    /**
+     * Sets an attribute on the node.
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return NodeDefinition|$this
+     */
+    public function attribute($key, $value)
+    {
+        $this->attributes[$key] = $value;
 
         return $this;
     }
@@ -94,7 +107,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Returns the parent node.
      *
-     * @return NodeParentInterface The builder of the parent node
+     * @return NodeParentInterface|null The builder of the parent node
      */
     public function end()
     {
@@ -104,7 +117,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Creates the node.
      *
-     * @param Boolean $forceRootNode Whether to force this node as the root node
+     * @param bool $forceRootNode Whether to force this node as the root node
      *
      * @return NodeInterface
      */
@@ -123,9 +136,7 @@ abstract class NodeDefinition implements NodeParentInterface
         }
 
         $node = $this->createNode();
-
-        $node->setInfo($this->info);
-        $node->setExample($this->example);
+        $node->setAttributes($this->attributes);
 
         return $node;
     }
@@ -135,7 +146,7 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param mixed $value The default value
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function defaultValue($value)
     {
@@ -148,7 +159,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets the node as required.
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function isRequired()
     {
@@ -162,7 +173,7 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param mixed $value
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function treatNullLike($value)
     {
@@ -176,7 +187,7 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param mixed $value
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function treatTrueLike($value)
     {
@@ -190,7 +201,7 @@ abstract class NodeDefinition implements NodeParentInterface
      *
      * @param mixed $value
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function treatFalseLike($value)
     {
@@ -202,7 +213,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets null as the default value.
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function defaultNull()
     {
@@ -212,7 +223,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets true as the default value.
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function defaultTrue()
     {
@@ -222,7 +233,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets false as the default value.
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function defaultFalse()
     {
@@ -242,7 +253,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Denies the node value being empty.
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function cannotBeEmpty()
     {
@@ -268,9 +279,9 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets whether the node can be overwritten.
      *
-     * @param Boolean $deny Whether the overwriting is forbidden or not
+     * @param bool $deny Whether the overwriting is forbidden or not
      *
-     * @return NodeDefinition
+     * @return NodeDefinition|$this
      */
     public function cannotBeOverwritten($deny = true)
     {
@@ -322,12 +333,11 @@ abstract class NodeDefinition implements NodeParentInterface
     }
 
     /**
-     * Instantiate and configure the node according to this definition
+     * Instantiate and configure the node according to this definition.
      *
      * @return NodeInterface $node The node instance
      *
-     * @throws Symfony\Component\Config\Definition\Exception\InvalidDefinitionException When the definition is invalid
+     * @throws InvalidDefinitionException When the definition is invalid
      */
     abstract protected function createNode();
-
 }

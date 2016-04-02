@@ -12,44 +12,40 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\ChoiceList\ChoiceList;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class TimezoneType extends AbstractType
 {
     /**
-     * Stores the available timezone choices
+     * Stores the available timezone choices.
+     *
      * @var array
      */
-    static protected $timezones;
+    private static $timezones;
 
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        $defaultOptions = array(
-            'value_strategy' => ChoiceList::COPY_CHOICE,
-        );
-
-        if (empty($options['choice_list']) && empty($options['choices'])) {
-            $defaultOptions['choices'] = self::getTimezones();
-        }
-
-        return $defaultOptions;
+        $resolver->setDefaults(array(
+            'choices' => self::getTimezones(),
+            'choice_translation_domain' => false,
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
+    public function getParent()
     {
-        return 'choice';
+        return __NAMESPACE__.'\ChoiceType';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'timezone';
     }
@@ -64,10 +60,10 @@ class TimezoneType extends AbstractType
      *
      * @return array The timezone choices
      */
-    static private function getTimezones()
+    private static function getTimezones()
     {
-        if (null === static::$timezones) {
-            static::$timezones = array();
+        if (null === self::$timezones) {
+            self::$timezones = array();
 
             foreach (\DateTimeZone::listIdentifiers() as $timezone) {
                 $parts = explode('/', $timezone);
@@ -83,10 +79,10 @@ class TimezoneType extends AbstractType
                     $name = $parts[0];
                 }
 
-                static::$timezones[$region][$timezone] = str_replace('_', ' ', $name);
+                self::$timezones[$region][str_replace('_', ' ', $name)] = $timezone;
             }
         }
 
-        return static::$timezones;
+        return self::$timezones;
     }
 }

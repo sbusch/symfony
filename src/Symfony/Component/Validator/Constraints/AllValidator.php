@@ -16,44 +16,33 @@ use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 /**
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class AllValidator extends ConstraintValidator
 {
     /**
-     * Checks if the passed value is valid.
-     *
-     * @param mixed      $value      The value that should be validated
-     * @param Constraint $constraint The constraint for the validation
-     *
-     * @return Boolean Whether or not the value is valid
-     *
-     * @api
+     * {@inheritdoc}
      */
-    public function isValid($value, Constraint $constraint)
+    public function validate($value, Constraint $constraint)
     {
+        if (!$constraint instanceof All) {
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\All');
+        }
+
         if (null === $value) {
-            return true;
+            return;
         }
 
         if (!is_array($value) && !$value instanceof \Traversable) {
             throw new UnexpectedTypeException($value, 'array or Traversable');
         }
 
-        $walker = $this->context->getGraphWalker();
-        $group = $this->context->getGroup();
-        $propertyPath = $this->context->getPropertyPath();
+        $context = $this->context;
 
-        // cannot simply cast to array, because then the object is converted to an
-        // array instead of wrapped inside
-        $constraints = is_array($constraint->constraints) ? $constraint->constraints : array($constraint->constraints);
+        $validator = $context->getValidator()->inContext($context);
 
         foreach ($value as $key => $element) {
-            foreach ($constraints as $constr) {
-                $walker->walkConstraint($constr, $element, $group, $propertyPath.'['.$key.']');
-            }
+            $validator->atPath('['.$key.']')->validate($element, $constraint->constraints);
         }
-
-        return true;
     }
 }

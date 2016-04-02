@@ -16,36 +16,35 @@ namespace Symfony\Component\HttpFoundation\File\MimeType;
  *
  * A default guesser is provided.
  * You can register custom guessers by calling the register()
- * method on the singleton instance.
+ * method on the singleton instance:
  *
- * <code>
- * $guesser = ExtensionGuesser::getInstance();
- * $guesser->register(new MyCustomExtensionGuesser());
- * </code>
+ *     $guesser = ExtensionGuesser::getInstance();
+ *     $guesser->register(new MyCustomExtensionGuesser());
  *
  * The last registered guesser is preferred over previously registered ones.
- *
  */
 class ExtensionGuesser implements ExtensionGuesserInterface
 {
     /**
-     * The singleton instance
+     * The singleton instance.
+     *
      * @var ExtensionGuesser
      */
-    static private $instance = null;
+    private static $instance = null;
 
     /**
-     * All registered ExtensionGuesserInterface instances
+     * All registered ExtensionGuesserInterface instances.
+     *
      * @var array
      */
     protected $guessers = array();
 
     /**
-     * Returns the singleton instance
+     * Returns the singleton instance.
      *
      * @return ExtensionGuesser
      */
-    static public function getInstance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -55,7 +54,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Registers all natively provided extension guessers
+     * Registers all natively provided extension guessers.
      */
     private function __construct()
     {
@@ -63,7 +62,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Registers a new extension guesser
+     * Registers a new extension guesser.
      *
      * When guessing, this guesser is preferred over previously registered ones.
      *
@@ -75,26 +74,23 @@ class ExtensionGuesser implements ExtensionGuesserInterface
     }
 
     /**
-     * Tries to guess the extension
+     * Tries to guess the extension.
      *
      * The mime type is passed to each registered mime type guesser in reverse order
      * of their registration (last registered is queried first). Once a guesser
      * returns a value that is not NULL, this method terminates and returns the
      * value.
      *
-     * @param  string $mimeType   The mime type
-     * @return string             The guessed extension or NULL, if none could be guessed
+     * @param string $mimeType The mime type
+     *
+     * @return string The guessed extension or NULL, if none could be guessed
      */
     public function guess($mimeType)
     {
         foreach ($this->guessers as $guesser) {
-            $extension = $guesser->guess($mimeType);
-
-            if (null !== $extension) {
-                break;
+            if (null !== $extension = $guesser->guess($mimeType)) {
+                return $extension;
             }
         }
-
-        return $extension;
     }
 }

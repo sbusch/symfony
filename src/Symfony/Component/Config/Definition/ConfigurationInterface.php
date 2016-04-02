@@ -12,7 +12,7 @@
 namespace Symfony\Component\Config\Definition;
 
 /**
- * Configuration interface
+ * Configuration interface.
  *
  * @author Victor Berchet <victor@suumit.com>
  */
@@ -23,5 +23,5 @@ interface ConfigurationInterface
      *
      * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder The tree builder
      */
-    function getConfigTreeBuilder();
+    public function getConfigTreeBuilder();
 }

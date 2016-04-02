@@ -1,15 +1,15 @@
 <?php
 
-namespace Symfony\Component\Serializer\Normalizer;
-
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
+
+namespace Symfony\Component\Serializer\Normalizer;
 
 /**
  * Defines the interface of normalizers.
@@ -19,20 +19,23 @@ namespace Symfony\Component\Serializer\Normalizer;
 interface NormalizerInterface
 {
     /**
-     * Normalizes an object into a set of arrays/scalars
+     * Normalizes an object into a set of arrays/scalars.
      *
-     * @param object $object object to normalize
-     * @param string $format format the normalization result will be encoded as
-     * @return array|scalar
+     * @param object $object  object to normalize
+     * @param string $format  format the normalization result will be encoded as
+     * @param array  $context Context options for the normalizer
+     *
+     * @return array|string|bool|int|float|null
      */
-    function normalize($object, $format = null);
+    public function normalize($object, $format = null, array $context = array());
 
     /**
-     * Checks whether the given class is supported for normalization by this normalizer
+     * Checks whether the given class is supported for normalization by this normalizer.
      *
-     * @param mixed   $data   Data to normalize.
-     * @param string  $format The format being (de-)serialized from or into.
-     * @return Boolean
+     * @param mixed  $data   Data to normalize.
+     * @param string $format The format being (de-)serialized from or into.
+     *
+     * @return bool
      */
-    function supportsNormalization($data, $format = null);
+    public function supportsNormalization($data, $format = null);
 }

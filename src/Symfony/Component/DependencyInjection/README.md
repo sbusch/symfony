@@ -1,26 +1,14 @@
 DependencyInjection Component
 =============================
 
-DependencyInjection manages your services via a robust and flexible Dependency
-Injection Container.
-
-Here is a simple example that shows how to register services and parameters:
-
-    use Symfony\Component\DependencyInjection\ContainerBuilder;
-    use Symfony\Component\DependencyInjection\Reference;
-
-    $sc = new ContainerBuilder();
-    $sc
-        ->register('foo', '%foo.class%')
-        ->addArgument(new Reference('bar'))
-    ;
-    $sc->setParameter('foo.class', 'Foo');
-
-    $sc->get('foo');
+The DependencyInjection component allows you to standardize and centralize the
+way objects are constructed in your application.
 
 Resources
 ---------
 
-Unit tests:
-
-https://github.com/symfony/symfony/tree/master/tests/Symfony/Tests/Component/DependencyInjection
+  * [Documentation](https://symfony.com/doc/current/components/dependency_injection/index.html)
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)

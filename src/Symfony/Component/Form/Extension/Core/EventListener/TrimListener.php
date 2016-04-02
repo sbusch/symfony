@@ -12,27 +12,30 @@
 namespace Symfony\Component\Form\Extension\Core\EventListener;
 
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\Form\Event\FilterDataEvent;
+use Symfony\Component\Form\FormEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Form\Util\StringUtil;
 
 /**
- * Trims string data
+ * Trims string data.
  *
- * @author Bernhard Schussek <bernhard.schussek@symfony-project.com>
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class TrimListener implements EventSubscriberInterface
 {
-    public function onBindClientData(FilterDataEvent $event)
+    public function preSubmit(FormEvent $event)
     {
         $data = $event->getData();
 
-        if (is_string($data)) {
-            $event->setData(trim($data));
+        if (!is_string($data)) {
+            return;
         }
+
+        $event->setData(StringUtil::trim($data));
     }
 
-    static public function getSubscribedEvents()
+    public static function getSubscribedEvents()
     {
-        return array(FormEvents::BIND_CLIENT_DATA => 'onBindClientData');
+        return array(FormEvents::PRE_SUBMIT => 'preSubmit');
     }
 }

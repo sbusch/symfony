@@ -24,22 +24,20 @@ use Symfony\Component\DependencyInjection\Alias;
 class ServiceReferenceGraphNode
 {
     private $id;
-    private $inEdges;
-    private $outEdges;
+    private $inEdges = array();
+    private $outEdges = array();
     private $value;
 
     /**
      * Constructor.
      *
-     * @param string $id The node identifier
-     * @param mixed $value The node value
+     * @param string $id    The node identifier
+     * @param mixed  $value The node value
      */
     public function __construct($id, $value)
     {
         $this->id = $id;
         $this->value = $value;
-        $this->inEdges = array();
-        $this->outEdges = array();
     }
 
     /**
@@ -65,7 +63,7 @@ class ServiceReferenceGraphNode
     /**
      * Checks if the value of this node is an Alias.
      *
-     * @return Boolean True if the value is an Alias instance
+     * @return bool True if the value is an Alias instance
      */
     public function isAlias()
     {
@@ -75,7 +73,7 @@ class ServiceReferenceGraphNode
     /**
      * Checks if the value of this node is a Definition.
      *
-     * @return Boolean True if the value is a Definition instance
+     * @return bool True if the value is a Definition instance
      */
     public function isDefinition()
     {
@@ -113,7 +111,7 @@ class ServiceReferenceGraphNode
     }
 
     /**
-     * Returns the value of this Node
+     * Returns the value of this Node.
      *
      * @return mixed The value
      */

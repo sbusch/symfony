@@ -14,7 +14,7 @@ namespace Symfony\Component\Security\Http\Firewall;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
 /**
- * Interface that must be implemented by firewall listeners
+ * Interface that must be implemented by firewall listeners.
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
@@ -25,5 +25,5 @@ interface ListenerInterface
      *
      * @param GetResponseEvent $event
      */
-    function handle(GetResponseEvent $event);
+    public function handle(GetResponseEvent $event);
 }

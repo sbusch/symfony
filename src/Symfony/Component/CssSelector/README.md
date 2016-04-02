@@ -1,23 +1,20 @@
 CssSelector Component
 =====================
 
-CssSelector converts CSS selectors to XPath expressions.
-
-The component only goal is to convert CSS selectors to their XPath
-equivalents:
-
-    use Symfony\Component\CssSelector\CssSelector;
-
-    print CssSelector::toXPath('div.item > h4 > a');
+The CssSelector component converts CSS selectors to XPath expressions.
 
 Resources
 ---------
 
-Unit tests:
+  * [Documentation](https://symfony.com/doc/current/components/css_selector.html)
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)
 
-https://github.com/symfony/symfony/tree/master/tests/Symfony/Tests/Component/CssSelector
+Credits
+-------
 
-This component is a port of the Python lxml library, which is copyright Infrae
-and distributed under the BSD license.
-
-Current code is a port of http://codespeak.net/svn/lxml/trunk/src/lxml/cssselect.py@71545
+This component is a port of the Python cssselect library
+[v0.7.1](https://github.com/SimonSapin/cssselect/releases/tag/v0.7.1),
+which is distributed under the BSD license.

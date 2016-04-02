@@ -12,33 +12,24 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
-use Symfony\Component\Form\Extension\Core\DataTransformer\ValueToStringTransformer;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class TextType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        $builder
-            ->appendClientTransformer(new ValueToStringTransformer())
-        ;
+        $resolver->setDefaults(array(
+            'compound' => false,
+        ));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getParent(array $options)
-    {
-        return 'field';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'text';
     }

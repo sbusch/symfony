@@ -16,17 +16,15 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBagInterface;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
+use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
 
 /**
  * Session.
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Drak <drak@zikula.org>
- *
- * @api
  */
-class Session implements SessionInterface
+class Session implements SessionInterface, \IteratorAggregate, \Countable
 {
     /**
      * Storage driver.
@@ -36,17 +34,33 @@ class Session implements SessionInterface
     protected $storage;
 
     /**
+     * @var string
+     */
+    private $flashName;
+
+    /**
+     * @var string
+     */
+    private $attributeName;
+
+    /**
      * Constructor.
      *
-     * @param SessionStorageInterface $storage A SessionStorageInterface instance.
+     * @param SessionStorageInterface $storage    A SessionStorageInterface instance.
      * @param AttributeBagInterface   $attributes An AttributeBagInterface instance, (defaults null for default AttributeBag)
      * @param FlashBagInterface       $flashes    A FlashBagInterface instance (defaults null for default FlashBag)
      */
-    public function __construct(SessionStorageInterface $storage, AttributeBagInterface $attributes = null, FlashBagInterface $flashes = null)
+    public function __construct(SessionStorageInterface $storage = null, AttributeBagInterface $attributes = null, FlashBagInterface $flashes = null)
     {
-        $this->storage = $storage;
-        $this->registerBag($attributes ?: new AttributeBag());
-        $this->registerBag($flashes ?: new FlashBag());
+        $this->storage = $storage ?: new NativeSessionStorage();
+
+        $attributes = $attributes ?: new AttributeBag();
+        $this->attributeName = $attributes->getName();
+        $this->registerBag($attributes);
+
+        $flashes = $flashes ?: new FlashBag();
+        $this->flashName = $flashes->getName();
+        $this->registerBag($flashes);
     }
 
     /**
@@ -62,7 +76,7 @@ class Session implements SessionInterface
      */
     public function has($name)
     {
-        return $this->storage->getBag('attributes')->has($name);
+        return $this->storage->getBag($this->attributeName)->has($name);
     }
 
     /**
@@ -70,7 +84,7 @@ class Session implements SessionInterface
      */
     public function get($name, $default = null)
     {
-        return $this->storage->getBag('attributes')->get($name, $default);
+        return $this->storage->getBag($this->attributeName)->get($name, $default);
     }
 
     /**
@@ -78,7 +92,7 @@ class Session implements SessionInterface
      */
     public function set($name, $value)
     {
-        $this->storage->getBag('attributes')->set($name, $value);
+        $this->storage->getBag($this->attributeName)->set($name, $value);
     }
 
     /**
@@ -86,7 +100,7 @@ class Session implements SessionInterface
      */
     public function all()
     {
-        return $this->storage->getBag('attributes')->all();
+        return $this->storage->getBag($this->attributeName)->all();
     }
 
     /**
@@ -94,7 +108,7 @@ class Session implements SessionInterface
      */
     public function replace(array $attributes)
     {
-        $this->storage->getBag('attributes')->replace($attributes);
+        $this->storage->getBag($this->attributeName)->replace($attributes);
     }
 
     /**
@@ -102,7 +116,7 @@ class Session implements SessionInterface
      */
     public function remove($name)
     {
-        return $this->storage->getBag('attributes')->remove($name);
+        return $this->storage->getBag($this->attributeName)->remove($name);
     }
 
     /**
@@ -110,25 +124,53 @@ class Session implements SessionInterface
      */
     public function clear()
     {
-        $this->storage->getBag('attributes')->clear();
+        $this->storage->getBag($this->attributeName)->clear();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function invalidate()
+    public function isStarted()
+    {
+        return $this->storage->isStarted();
+    }
+
+    /**
+     * Returns an iterator for attributes.
+     *
+     * @return \ArrayIterator An \ArrayIterator instance
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->storage->getBag($this->attributeName)->all());
+    }
+
+    /**
+     * Returns the number of attributes.
+     *
+     * @return int The number of attributes
+     */
+    public function count()
+    {
+        return count($this->storage->getBag($this->attributeName)->all());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function invalidate($lifetime = null)
     {
         $this->storage->clear();
 
-        return $this->storage->regenerate(true);
+        return $this->migrate(true, $lifetime);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function migrate($destroy = false)
+    public function migrate($destroy = false, $lifetime = null)
     {
-        return $this->storage->regenerate($destroy);
+        return $this->storage->regenerate($destroy, $lifetime);
     }
 
     /**
@@ -140,11 +182,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * Returns the session ID
-     *
-     * @return mixed The session ID
-     *
-     * @api
+     * {@inheritdoc}
      */
     public function getId()
     {
@@ -152,9 +190,39 @@ class Session implements SessionInterface
     }
 
     /**
-     * Registers a SessionBagInterface with the sessio.
-     *
-     * @param SessionBagInterface $bag
+     * {@inheritdoc}
+     */
+    public function setId($id)
+    {
+        $this->storage->setId($id);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+        return $this->storage->getName();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setName($name)
+    {
+        $this->storage->setName($name);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getMetadataBag()
+    {
+        return $this->storage->getMetadataBag();
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function registerBag(SessionBagInterface $bag)
     {
@@ -162,11 +230,7 @@ class Session implements SessionInterface
     }
 
     /**
-     * Get's a bag instance.
-     *
-     * @param string $name
-     *
-     * @return SessionBagInterface
+     * {@inheritdoc}
      */
     public function getBag($name)
     {
@@ -180,84 +244,6 @@ class Session implements SessionInterface
      */
     public function getFlashBag()
     {
-        return $this->getBag('flashes');
-    }
-
-    // the following methods are kept for compatibility with Symfony 2.0 (they will be removed for Symfony 2.3)
-
-    /**
-     * @return array
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function getFlashes()
-    {
-        return $this->getBag('flashes')->all();
-    }
-
-    /**
-     * @param array $values
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function setFlashes($values)
-    {
-       $this->getBag('flashes')->setAll($values);
-    }
-
-    /**
-     * @param string $name
-     * @param string $default
-     *
-     * @return string
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function getFlash($name, $default = null)
-    {
-       return $this->getBag('flashes')->get($name, $default);
-    }
-
-    /**
-     * @param string $name
-     * @param string $value
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function setFlash($name, $value)
-    {
-       $this->getBag('flashes')->set($name, $value);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return Boolean
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function hasFlash($name)
-    {
-       return $this->getBag('flashes')->has($name);
-    }
-
-    /**
-     * @param string $name
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function removeFlash($name)
-    {
-       $this->getBag('flashes')->get($name);
-    }
-
-    /**
-     * @return array
-     *
-     * @deprecated since 2.1, will be removed from 2.3
-     */
-    public function clearFlashes()
-    {
-       return $this->getBag('flashes')->clear();
+        return $this->getBag($this->flashName);
     }
 }

@@ -16,30 +16,31 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
- * Base class for events thrown in the HttpKernel component
+ * Base class for events thrown in the HttpKernel component.
  *
- * @author Bernhard Schussek <bernhard.schussek@symfony.com>
- *
- * @api
+ * @author Bernhard Schussek <bschussek@gmail.com>
  */
 class KernelEvent extends Event
 {
     /**
-     * The kernel in which this event was thrown
-     * @var Symfony\Component\HttpKernel\HttpKernelInterface
+     * The kernel in which this event was thrown.
+     *
+     * @var HttpKernelInterface
      */
     private $kernel;
 
     /**
-     * The request the kernel is currently processing
-     * @var Symfony\Component\HttpFoundation\Request
+     * The request the kernel is currently processing.
+     *
+     * @var Request
      */
     private $request;
 
     /**
      * The request type the kernel is currently processing.  One of
-     * HttpKernelInterface::MASTER_REQUEST and HttpKernelInterface::SUB_REQUEST
-     * @var integer
+     * HttpKernelInterface::MASTER_REQUEST and HttpKernelInterface::SUB_REQUEST.
+     *
+     * @var int
      */
     private $requestType;
 
@@ -51,11 +52,9 @@ class KernelEvent extends Event
     }
 
     /**
-     * Returns the kernel in which this event was thrown
+     * Returns the kernel in which this event was thrown.
      *
-     * @return Symfony\Component\HttpKernel\HttpKernelInterface
-     *
-     * @api
+     * @return HttpKernelInterface
      */
     public function getKernel()
     {
@@ -63,11 +62,9 @@ class KernelEvent extends Event
     }
 
     /**
-     * Returns the request the kernel is currently processing
+     * Returns the request the kernel is currently processing.
      *
-     * @return Symfony\Component\HttpFoundation\Request
-     *
-     * @api
+     * @return Request
      */
     public function getRequest()
     {
@@ -75,15 +72,23 @@ class KernelEvent extends Event
     }
 
     /**
-     * Returns the request type the kernel is currently processing
+     * Returns the request type the kernel is currently processing.
      *
-     * @return integer  One of HttpKernelInterface::MASTER_REQUEST and
-     *                  HttpKernelInterface::SUB_REQUEST
-     *
-     * @api
+     * @return int One of HttpKernelInterface::MASTER_REQUEST and
+     *             HttpKernelInterface::SUB_REQUEST
      */
     public function getRequestType()
     {
         return $this->requestType;
+    }
+
+    /**
+     * Checks if this is a master request.
+     *
+     * @return bool True if the request is a master request
+     */
+    public function isMasterRequest()
+    {
+        return HttpKernelInterface::MASTER_REQUEST === $this->requestType;
     }
 }

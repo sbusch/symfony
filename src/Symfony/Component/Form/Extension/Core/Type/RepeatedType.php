@@ -12,22 +12,27 @@
 namespace Symfony\Component\Form\Extension\Core\Type;
 
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilder;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\DataTransformer\ValueToDuplicatesTransformer;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class RepeatedType extends AbstractType
 {
     /**
      * {@inheritdoc}
      */
-    public function buildForm(FormBuilder $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options)
     {
         // Overwrite required option for child fields
-        $options['first_options']['required']  = $options['required'];
+        $options['first_options']['required'] = $options['required'];
         $options['second_options']['required'] = $options['required'];
 
+        if (!isset($options['options']['error_bubbling'])) {
+            $options['options']['error_bubbling'] = $options['error_bubbling'];
+        }
+
         $builder
-            ->appendClientTransformer(new ValueToDuplicatesTransformer(array(
+            ->addViewTransformer(new ValueToDuplicatesTransformer(array(
                 $options['first_name'],
                 $options['second_name'],
             )))
@@ -39,23 +44,27 @@ class RepeatedType extends AbstractType
     /**
      * {@inheritdoc}
      */
-    public function getDefaultOptions(array $options)
+    public function configureOptions(OptionsResolver $resolver)
     {
-        return array(
-            'type'           => 'text',
-            'options'        => array(),
-            'first_options'  => array(),
+        $resolver->setDefaults(array(
+            'type' => __NAMESPACE__.'\TextType',
+            'options' => array(),
+            'first_options' => array(),
             'second_options' => array(),
-            'first_name'     => 'first',
-            'second_name'    => 'second',
+            'first_name' => 'first',
+            'second_name' => 'second',
             'error_bubbling' => false,
-        );
+        ));
+
+        $resolver->setAllowedTypes('options', 'array');
+        $resolver->setAllowedTypes('first_options', 'array');
+        $resolver->setAllowedTypes('second_options', 'array');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getBlockPrefix()
     {
         return 'repeated';
     }

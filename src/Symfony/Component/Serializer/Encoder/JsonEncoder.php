@@ -1,59 +1,70 @@
 <?php
 
-namespace Symfony\Component\Serializer\Encoder;
-
-
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
+namespace Symfony\Component\Serializer\Encoder;
+
 /**
- * Encodes JSON data
+ * Encodes JSON data.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 class JsonEncoder implements EncoderInterface, DecoderInterface
 {
+    const FORMAT = 'json';
+
     /**
-     * {@inheritdoc}
+     * @var JsonEncode
      */
-    public function encode($data, $format)
+    protected $encodingImpl;
+
+    /**
+     * @var JsonDecode
+     */
+    protected $decodingImpl;
+
+    public function __construct(JsonEncode $encodingImpl = null, JsonDecode $decodingImpl = null)
     {
-        return json_encode($data);
+        $this->encodingImpl = $encodingImpl ?: new JsonEncode();
+        $this->decodingImpl = $decodingImpl ?: new JsonDecode(true);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function decode($data, $format)
+    public function encode($data, $format, array $context = array())
     {
-        return json_decode($data, true);
+        return $this->encodingImpl->encode($data, self::FORMAT, $context);
     }
 
     /**
-     * Checks whether the serializer can encode to given format
-     *
-     * @param string $format format name
-     * @return Boolean
+     * {@inheritdoc}
+     */
+    public function decode($data, $format, array $context = array())
+    {
+        return $this->decodingImpl->decode($data, self::FORMAT, $context);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function supportsEncoding($format)
     {
-        return 'json' === $format;
+        return self::FORMAT === $format;
     }
 
     /**
-     * Checks whether the serializer can decode from given format
-     *
-     * @param string $format format name
-     * @return Boolean
+     * {@inheritdoc}
      */
     public function supportsDecoding($format)
     {
-        return 'json' === $format;
+        return self::FORMAT === $format;
     }
 }

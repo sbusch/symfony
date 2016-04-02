@@ -11,54 +11,56 @@
 
 namespace Symfony\Component\DependencyInjection\ParameterBag;
 
+use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Exception\ParameterNotFoundException;
 
 /**
  * ParameterBagInterface.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 interface ParameterBagInterface
 {
     /**
      * Clears all parameters.
      *
-     * @api
+     * @throws LogicException if the ParameterBagInterface can not be cleared
      */
-    function clear();
+    public function clear();
 
     /**
      * Adds parameters to the service container parameters.
      *
      * @param array $parameters An array of parameters
      *
-     * @api
+     * @throws LogicException if the parameter can not be added
      */
-    function add(array $parameters);
+    public function add(array $parameters);
 
     /**
      * Gets the service container parameters.
      *
      * @return array An array of parameters
-     *
-     * @api
      */
-    function all();
+    public function all();
 
     /**
      * Gets a service container parameter.
      *
      * @param string $name The parameter name
      *
-     * @return mixed  The parameter value
+     * @return mixed The parameter value
      *
      * @throws ParameterNotFoundException if the parameter is not defined
-     *
-     * @api
      */
-    function get($name);
+    public function get($name);
+
+    /**
+     * Removes a parameter.
+     *
+     * @param string $name The parameter name
+     */
+    public function remove($name);
 
     /**
      * Sets a service container parameter.
@@ -66,32 +68,48 @@ interface ParameterBagInterface
      * @param string $name  The parameter name
      * @param mixed  $value The parameter value
      *
-     * @api
+     * @throws LogicException if the parameter can not be set
      */
-    function set($name, $value);
+    public function set($name, $value);
 
     /**
      * Returns true if a parameter name is defined.
      *
-     * @param  string  $name       The parameter name
+     * @param string $name The parameter name
      *
-     * @return Boolean true if the parameter name is defined, false otherwise
-     *
-     * @api
+     * @return bool true if the parameter name is defined, false otherwise
      */
-    function has($name);
+    public function has($name);
 
     /**
      * Replaces parameter placeholders (%name%) by their values for all parameters.
      */
-    function resolve();
+    public function resolve();
 
     /**
      * Replaces parameter placeholders (%name%) by their values.
      *
-     * @param  mixed $value A value
+     * @param mixed $value A value
      *
      * @throws ParameterNotFoundException if a placeholder references a parameter that does not exist
      */
-    function resolveValue($value);
+    public function resolveValue($value);
+
+    /**
+     * Escape parameter placeholders %.
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function escapeValue($value);
+
+    /**
+     * Unescape parameter placeholders %.
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    public function unescapeValue($value);
 }

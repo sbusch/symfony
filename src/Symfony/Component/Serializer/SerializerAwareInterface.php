@@ -1,29 +1,27 @@
 <?php
 
-namespace Symfony\Component\Serializer;
-
-use Symfony\Component\Serializer\SerializerInterface;
-
 /*
- * This file is part of the Symfony framework.
+ * This file is part of the Symfony package.
  *
  * (c) Fabien Potencier <fabien@symfony.com>
  *
- * This source file is subject to the MIT license that is bundled
- * with this source code in the file LICENSE.
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
+namespace Symfony\Component\Serializer;
+
 /**
- * Defines the interface of encoders
+ * Defines the interface of encoders.
  *
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
 interface SerializerAwareInterface
 {
     /**
-     * Sets the owning Serializer object
+     * Sets the owning Serializer object.
      *
      * @param SerializerInterface $serializer
      */
-    function setSerializer(SerializerInterface $serializer);
+    public function setSerializer(SerializerInterface $serializer);
 }

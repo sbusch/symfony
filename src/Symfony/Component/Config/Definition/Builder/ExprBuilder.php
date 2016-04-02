@@ -10,6 +10,7 @@
  */
 
 namespace Symfony\Component\Config\Definition\Builder;
+
 use Symfony\Component\Config\Definition\Exception\UnsetKeyException;
 
 /**
@@ -25,7 +26,7 @@ class ExprBuilder
     public $thenPart;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param NodeDefinition $node The related node
      */
@@ -37,11 +38,13 @@ class ExprBuilder
     /**
      * Marks the expression as being always used.
      *
+     * @param \Closure $then
+     *
      * @return ExprBuilder
      */
     public function always(\Closure $then = null)
     {
-        $this->ifPart = function($v) { return true; };
+        $this->ifPart = function ($v) { return true; };
 
         if (null !== $then) {
             $this->thenPart = $then;
@@ -62,7 +65,7 @@ class ExprBuilder
     public function ifTrue(\Closure $closure = null)
     {
         if (null === $closure) {
-            $closure = function($v) { return true === $v; };
+            $closure = function ($v) { return true === $v; };
         }
 
         $this->ifPart = $closure;
@@ -77,7 +80,7 @@ class ExprBuilder
      */
     public function ifString()
     {
-        $this->ifPart = function($v) { return is_string($v); };
+        $this->ifPart = function ($v) { return is_string($v); };
 
         return $this;
     }
@@ -89,7 +92,7 @@ class ExprBuilder
      */
     public function ifNull()
     {
-        $this->ifPart = function($v) { return null === $v; };
+        $this->ifPart = function ($v) { return null === $v; };
 
         return $this;
     }
@@ -101,7 +104,7 @@ class ExprBuilder
      */
     public function ifArray()
     {
-        $this->ifPart = function($v) { return is_array($v); };
+        $this->ifPart = function ($v) { return is_array($v); };
 
         return $this;
     }
@@ -115,7 +118,7 @@ class ExprBuilder
      */
     public function ifInArray(array $array)
     {
-        $this->ifPart = function($v) use ($array) { return in_array($v, $array, true); };
+        $this->ifPart = function ($v) use ($array) { return in_array($v, $array, true); };
 
         return $this;
     }
@@ -129,7 +132,7 @@ class ExprBuilder
      */
     public function ifNotInArray(array $array)
     {
-        $this->ifPart = function($v) use ($array) { return !in_array($v, $array, true); };
+        $this->ifPart = function ($v) use ($array) { return !in_array($v, $array, true); };
 
         return $this;
     }
@@ -155,7 +158,7 @@ class ExprBuilder
      */
     public function thenEmptyArray()
     {
-        $this->thenPart = function($v) { return array(); };
+        $this->thenPart = function ($v) { return array(); };
 
         return $this;
     }
@@ -168,6 +171,8 @@ class ExprBuilder
      * @param string $message
      *
      * @return ExprBuilder
+     *
+     * @throws \InvalidArgumentException
      */
     public function thenInvalid($message)
     {
@@ -180,6 +185,8 @@ class ExprBuilder
      * Sets a closure unsetting this key of the array at validation time.
      *
      * @return ExprBuilder
+     *
+     * @throws UnsetKeyException
      */
     public function thenUnset()
     {
@@ -189,9 +196,11 @@ class ExprBuilder
     }
 
     /**
-     * Returns the related node
+     * Returns the related node.
      *
      * @return NodeDefinition
+     *
+     * @throws \RuntimeException
      */
     public function end()
     {
@@ -208,16 +217,18 @@ class ExprBuilder
     /**
      * Builds the expressions.
      *
-     * @param array $expressions An array of ExprBuilder instances to build
+     * @param ExprBuilder[] $expressions An array of ExprBuilder instances to build
      *
      * @return array
      */
-    static public function buildExpressions(array $expressions)
+    public static function buildExpressions(array $expressions)
     {
         foreach ($expressions as $k => $expr) {
-            if ($expr instanceof ExprBuilder) {
-                $expressions[$k] = function($v) use($expr) {
-                    return call_user_func($expr->ifPart, $v) ? call_user_func($expr->thenPart, $v) : $v;
+            if ($expr instanceof self) {
+                $if = $expr->ifPart;
+                $then = $expr->thenPart;
+                $expressions[$k] = function ($v) use ($if, $then) {
+                    return $if($v) ? $then($v) : $v;
                 };
             }
         }

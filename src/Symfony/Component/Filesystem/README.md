@@ -1,29 +1,13 @@
 Filesystem Component
 ====================
 
-Filesystem provides basic utility to manipulate the file system:
+The Filesystem component provides basic utilities for the filesystem.
 
-    use Symfony\Component\Filesystem\Filesystem;
+Resources
+---------
 
-    $filesystem = new Filesystem();
-
-    $filesystem->copy($originFile, $targetFile, $override = false);
-
-    $filesystem->mkdir($dirs, $mode = 0777);
-
-    $filesystem->touch($files);
-
-    $filesystem->remove($files);
-
-    $filesystem->chmod($files, $mode, $umask = 0000);
-
-    $filesystem->rename($origin, $target);
-
-    $filesystem->symlink($originDir, $targetDir, $copyOnWindows = false);
-
-    $filesystem->makePathRelative($endPath, $startPath);
-
-    $filesystem->mirror($originDir, $targetDir, \Traversable $iterator = null, $options = array());
-
-    $filesystem->isAbsolutePath($file);
-
+  * [Documentation](https://symfony.com/doc/current/components/filesystem/index.html)
+  * [Contributing](https://symfony.com/doc/current/contributing/index.html)
+  * [Report issues](https://github.com/symfony/symfony/issues) and
+    [send Pull Requests](https://github.com/symfony/symfony/pulls)
+    in the [main Symfony repository](https://github.com/symfony/symfony)

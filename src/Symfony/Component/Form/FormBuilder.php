@@ -11,727 +11,262 @@
 
 namespace Symfony\Component\Form;
 
-use Symfony\Component\Form\Exception\FormException;
+use Symfony\Component\Form\Exception\BadMethodCallException;
+use Symfony\Component\Form\Exception\InvalidArgumentException;
 use Symfony\Component\Form\Exception\UnexpectedTypeException;
-use Symfony\Component\Form\Exception\CircularReferenceException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class FormBuilder
+/**
+ * A builder for creating {@link Form} instances.
+ *
+ * @author Bernhard Schussek <bschussek@gmail.com>
+ */
+class FormBuilder extends FormConfigBuilder implements \IteratorAggregate, FormBuilderInterface
 {
     /**
-     * @var string
-     */
-    private $name;
-
-    /**
-     * The form data in application format
-     * @var mixed
-     */
-    private $appData;
-
-    /**
-     * The event dispatcher
+     * The children of the form builder.
      *
-     * @var EventDispatcherInterface
-     */
-    private $dispatcher;
-
-    /**
-     * The form factory
-     * @var FormFactoryInterface
-     */
-    private $factory;
-
-    /**
-     * @var Boolean
-     */
-    private $disabled;
-
-    /**
-     * @var Boolean
-     */
-    private $required;
-
-    /**
-     * The transformers for transforming from normalized to client format and
-     * back
-     * @var array An array of DataTransformerInterface
-     */
-    private $clientTransformers = array();
-
-    /**
-     * The transformers for transforming from application to normalized format
-     * and back
-     * @var array An array of DataTransformerInterface
-     */
-    private $normTransformers = array();
-
-    /**
-     * @var array An array of FormValidatorInterface
-     */
-    private $validators = array();
-
-    /**
-     * Key-value store for arbitrary attributes attached to the form
-     * @var array
-     */
-    private $attributes = array();
-
-    /**
-     * @var array An array of FormTypeInterface
-     */
-    private $types = array();
-
-    /**
-     * @var string
-     */
-    private $dataClass;
-
-    /**
-     * The children of the form
-     * @var array
+     * @var FormBuilderInterface[]
      */
     private $children = array();
 
     /**
-     * @var DataMapperInterface
+     * The data of children who haven't been converted to form builders yet.
+     *
+     * @var array
      */
-    private $dataMapper;
+    private $unresolvedChildren = array();
 
     /**
-     * Whether added errors should bubble up to the parent
-     * @var Boolean
-     */
-    private $errorBubbling = false;
-
-    /**
-     * Data used for the client data when no value is bound
-     * @var mixed
-     */
-    private $emptyData = '';
-
-    private $currentLoadingType;
-
-    /**
-     * The parent of this builder
-     * @var FormBuilder
-     */
-    private $parent;
-
-    /**
-     * Constructor.
+     * Creates a new form builder.
      *
-     * @param string                    $name
-     * @param FormFactoryInterface      $factory
-     * @param EventDispatcherInterface  $dispatcher
-     * @param string                    $dataClass
-     */
-    public function __construct($name, FormFactoryInterface $factory, EventDispatcherInterface $dispatcher, $dataClass = null)
-    {
-        $name = (string) $name;
-
-        Form::validateName($name);
-
-        $this->name = $name;
-        $this->factory = $factory;
-        $this->dispatcher = $dispatcher;
-        $this->dataClass = $dataClass;
-    }
-
-    /**
-     * Returns the associated form factory.
-     *
-     * @return FormFactoryInterface The factory
-     */
-    public function getFormFactory()
-    {
-        return $this->factory;
-    }
-
-    /**
-     * Returns the name of the form.
-     *
-     * @return string The form name
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Updates the field with default data.
-     *
-     * @param array $appData The data formatted as expected for the underlying object
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setData($appData)
-    {
-        $this->appData = $appData;
-
-        return $this;
-    }
-
-    /**
-     * Returns the data in the format needed for the underlying object.
-     *
-     * @return mixed
-     */
-    public function getData()
-    {
-        return $this->appData;
-    }
-
-    /**
-     * Set whether the form is disabled.
-     *
-     * @param Boolean $disabled Whether the form is disabled
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setDisabled($disabled)
-    {
-        $this->disabled = (Boolean) $disabled;
-
-        return $this;
-    }
-
-    /**
-     * Returns whether the form is disabled.
-     *
-     * @return Boolean Whether the form is disabled
-     */
-    public function getDisabled()
-    {
-        return $this->disabled;
-    }
-
-    /**
-     * Sets whether this field is required to be filled out when bound.
-     *
-     * @param Boolean $required
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setRequired($required)
-    {
-        $this->required = (Boolean) $required;
-
-        return $this;
-    }
-
-    /**
-     * Returns whether this field is required to be filled out when bound.
-     *
-     * @return Boolean Whether this field is required
-     */
-    public function getRequired()
-    {
-        return $this->required;
-    }
-
-    /**
-     * Sets whether errors bubble up to the parent.
-     *
-     * @param type $errorBubbling
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setErrorBubbling($errorBubbling)
-    {
-        $this->errorBubbling = (Boolean) $errorBubbling;
-
-        return $this;
-    }
-
-    /**
-     * Returns whether errors bubble up to the parent.
-     *
-     * @return Boolean
-     */
-    public function getErrorBubbling()
-    {
-        return $this->errorBubbling;
-    }
-
-    /**
-     * Adds a validator to the form.
-     *
-     * @param FormValidatorInterface $validator The validator
-     *
-     * @return FormBuilder The current builder
-     */
-    public function addValidator(FormValidatorInterface $validator)
-    {
-        $this->validators[] = $validator;
-
-        return $this;
-    }
-
-    /**
-     * Returns the validators used by the form.
-     *
-     * @return array An array of FormValidatorInterface
-     */
-    public function getValidators()
-    {
-        return $this->validators;
-    }
-
-    /**
-     * Adds an event listener for events on this field
-     *
-     * @see Symfony\Component\EventDispatcher\EventDispatcherInterface::addListener
-     *
-     * @return FormBuilder The current builder
-     */
-    public function addEventListener($eventName, $listener, $priority = 0)
-    {
-        $this->dispatcher->addListener($eventName, $listener, $priority);
-
-        return $this;
-    }
-
-    /**
-     * Adds an event subscriber for events on this field
-     *
-     * @see Symfony\Component\EventDispatcher\EventDispatcherInterface::addSubscriber
-     *
-     * @return FormBuilder The current builder
-     */
-    public function addEventSubscriber(EventSubscriberInterface $subscriber)
-    {
-        $this->dispatcher->addSubscriber($subscriber);
-
-        return $this;
-    }
-
-    /**
-     * Appends a transformer to the normalization transformer chain
-     *
-     * @param DataTransformerInterface $normTransformer
-     *
-     * @return FormBuilder The current builder
-     */
-    public function appendNormTransformer(DataTransformerInterface $normTransformer)
-    {
-        $this->normTransformers[] = $normTransformer;
-
-        return $this;
-    }
-
-    /**
-     * Prepends a transformer to the normalization transformer chain
-     *
-     * @param DataTransformerInterface $normTransformer
-     *
-     * @return FormBuilder The current builder
-     */
-    public function prependNormTransformer(DataTransformerInterface $normTransformer)
-    {
-        array_unshift($this->normTransformers, $normTransformer);
-
-        return $this;
-    }
-
-    /**
-     * Clears the normalization transformers.
-     *
-     * @return FormBuilder The current builder
-     */
-    public function resetNormTransformers()
-    {
-        $this->normTransformers = array();
-
-        return $this;
-    }
-
-    /**
-     * Returns all the normalization transformers.
-     *
-     * @return array An array of DataTransformerInterface
-     */
-    public function getNormTransformers()
-    {
-        return $this->normTransformers;
-    }
-
-    /**
-     * Appends a transformer to the client transformer chain
-     *
-     * @param DataTransformerInterface $clientTransformer
-     *
-     * @return FormBuilder The current builder
-     */
-    public function appendClientTransformer(DataTransformerInterface $clientTransformer)
-    {
-        $this->clientTransformers[] = $clientTransformer;
-
-        return $this;
-    }
-
-    /**
-     * Prepends a transformer to the client transformer chain
-     *
-     * @param DataTransformerInterface $clientTransformer
-     *
-     * @return FormBuilder The current builder
-     */
-    public function prependClientTransformer(DataTransformerInterface $clientTransformer)
-    {
-        array_unshift($this->clientTransformers, $clientTransformer);
-
-        return $this;
-    }
-
-    /**
-     * Clears the client transformers.
-     *
-     * @return FormBuilder The current builder
-     */
-    public function resetClientTransformers()
-    {
-        $this->clientTransformers = array();
-
-        return $this;
-    }
-
-    /**
-     * Returns all the client transformers.
-     *
-     * @return array An array of DataTransformerInterface
-     */
-    public function getClientTransformers()
-    {
-        return $this->clientTransformers;
-    }
-
-    /**
-     * Sets the value for an attribute.
-     *
-     * @param string $name  The name of the attribute
-     * @param string $value The value of the attribute
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setAttribute($name, $value)
-    {
-        $this->attributes[$name] = $value;
-
-        return $this;
-    }
-
-    /**
-     * Returns the value of the attributes with the given name.
-     *
-     * @param string $name The name of the attribute
-     */
-    public function getAttribute($name)
-    {
-        return $this->attributes[$name];
-    }
-
-    /**
-     * Returns whether the form has an attribute with the given name.
-     *
-     * @param string $name The name of the attribute
-     */
-    public function hasAttribute($name)
-    {
-        return isset($this->attributes[$name]);
-    }
-
-    /**
-     * Returns all the attributes.
-     *
-     * @return array An array of attributes
-     */
-    public function getAttributes()
-    {
-        return $this->attributes;
-    }
-
-    /**
-     * Sets the data mapper used by the form.
-     *
-     * @param DataMapperInterface $dataMapper
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setDataMapper(DataMapperInterface $dataMapper)
-    {
-        $this->dataMapper = $dataMapper;
-
-        return $this;
-    }
-
-    /**
-     * Returns the data mapper used by the form.
-     *
-     * @return array An array of DataMapperInterface
-     */
-    public function getDataMapper()
-    {
-        return $this->dataMapper;
-    }
-
-    /**
-     * Set the types.
-     *
-     * @param array $types An array FormTypeInterface
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setTypes(array $types)
-    {
-        $this->types = $types;
-
-        return $this;
-    }
-
-    /**
-     * Return the types.
-     *
-     * @return array An array of FormTypeInterface
-     */
-    public function getTypes()
-    {
-        return $this->types;
-    }
-
-    /**
-     * Sets the data used for the client data when no value is bound.
-     *
-     * @param mixed $emptyData
-     */
-    public function setEmptyData($emptyData)
-    {
-        $this->emptyData = $emptyData;
-
-        return $this;
-    }
-
-    /**
-     * Returns the data used for the client data when no value is bound.
-     *
-     * @return mixed
-     */
-    public function getEmptyData()
-    {
-        return $this->emptyData;
-    }
-
-    /**
-     * Adds a new field to this group. A field must have a unique name within
-     * the group. Otherwise the existing field is overwritten.
-     *
-     * If you add a nested group, this group should also be represented in the
-     * object hierarchy.
-     *
-     * @param string|FormBuilder       $child
-     * @param string|FormTypeInterface $type
+     * @param string                   $name
+     * @param string                   $dataClass
+     * @param EventDispatcherInterface $dispatcher
+     * @param FormFactoryInterface     $factory
      * @param array                    $options
-     *
-     * @return FormBuilder The current builder
+     */
+    public function __construct($name, $dataClass, EventDispatcherInterface $dispatcher, FormFactoryInterface $factory, array $options = array())
+    {
+        parent::__construct($name, $dataClass, $dispatcher, $options);
+
+        $this->setFormFactory($factory);
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function add($child, $type = null, array $options = array())
     {
-        if ($child instanceof self) {
-            $child->setParent($this);
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        if ($child instanceof FormBuilderInterface) {
             $this->children[$child->getName()] = $child;
+
+            // In case an unresolved child with the same name exists
+            unset($this->unresolvedChildren[$child->getName()]);
 
             return $this;
         }
 
-        if (!is_string($child)) {
-            throw new UnexpectedTypeException($child, 'string or Symfony\Component\Form\FormBuilder');
+        if (!is_string($child) && !is_int($child)) {
+            throw new UnexpectedTypeException($child, 'string, integer or Symfony\Component\Form\FormBuilderInterface');
         }
 
         if (null !== $type && !is_string($type) && !$type instanceof FormTypeInterface) {
             throw new UnexpectedTypeException($type, 'string or Symfony\Component\Form\FormTypeInterface');
         }
 
-        if ($this->currentLoadingType && ($type instanceof FormTypeInterface ? $type->getName() : $type) == $this->currentLoadingType) {
-            throw new CircularReferenceException(is_string($type) ? $this->getFormFactory()->getType($type) : $type);
-        }
-
-        $this->children[$child] = array(
-            'type'      => $type,
-            'options'   => $options,
+        // Add to "children" to maintain order
+        $this->children[$child] = null;
+        $this->unresolvedChildren[$child] = array(
+            'type' => $type,
+            'options' => $options,
         );
 
         return $this;
     }
 
     /**
-     * Creates a form builder.
-     *
-     * @param string                    $name    The name of the form or the name of the property
-     * @param string|FormTypeInterface  $type    The type of the form or null if name is a property
-     * @param array                     $options The options
-     *
-     * @return FormBuilder The builder
+     * {@inheritdoc}
      */
     public function create($name, $type = null, array $options = array())
     {
-        if (null === $type && !$this->dataClass) {
-            $type = 'text';
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        if (null === $type && null === $this->getDataClass()) {
+            $type = 'Symfony\Component\Form\Extension\Core\Type\TextType';
         }
 
         if (null !== $type) {
-            return $this->getFormFactory()->createNamedBuilder($type, $name, null, $options, $this);
+            return $this->getFormFactory()->createNamedBuilder($name, $type, null, $options);
         }
 
-        return $this->getFormFactory()->createBuilderForProperty($this->dataClass, $name, null, $options, $this);
+        return $this->getFormFactory()->createBuilderForProperty($this->getDataClass(), $name, null, $options);
     }
 
     /**
-     * Returns a child by name.
-     *
-     * @param string $name The name of the child
-     *
-     * @return FormBuilder The builder for the child
-     *
-     * @throws FormException if the given child does not exist
+     * {@inheritdoc}
      */
     public function get($name)
     {
-        if (!isset($this->children[$name])) {
-            throw new FormException(sprintf('The field "%s" does not exist', $name));
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
         }
 
-        if (!$this->children[$name] instanceof FormBuilder) {
-            $this->children[$name] = $this->create(
-                $name,
-                $this->children[$name]['type'],
-                $this->children[$name]['options']
-            );
+        if (isset($this->unresolvedChildren[$name])) {
+            return $this->resolveChild($name);
         }
 
-        return $this->children[$name];
+        if (isset($this->children[$name])) {
+            return $this->children[$name];
+        }
+
+        throw new InvalidArgumentException(sprintf('The child with the name "%s" does not exist.', $name));
     }
 
     /**
-     * Removes the field with the given name.
-     *
-     * @param string $name
-     *
-     * @return FormBuilder The current builder
+     * {@inheritdoc}
      */
     public function remove($name)
     {
-        if (isset($this->children[$name])) {
-            if ($this->children[$name] instanceof self) {
-                $this->children[$name]->setParent(null);
-            }
-            unset($this->children[$name]);
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
         }
+
+        unset($this->unresolvedChildren[$name], $this->children[$name]);
 
         return $this;
     }
 
     /**
-     * Returns whether a field with the given name exists.
-     *
-     * @param  string $name
-     *
-     * @return Boolean
+     * {@inheritdoc}
      */
     public function has($name)
     {
-        return isset($this->children[$name]);
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        if (isset($this->unresolvedChildren[$name])) {
+            return true;
+        }
+
+        if (isset($this->children[$name])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
-     * Creates the form.
-     *
-     * @return Form The form
+     * {@inheritdoc}
+     */
+    public function all()
+    {
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        $this->resolveChildren();
+
+        return $this->children;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function count()
+    {
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        return count($this->children);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormConfig()
+    {
+        /** @var $config self */
+        $config = parent::getFormConfig();
+
+        $config->children = array();
+        $config->unresolvedChildren = array();
+
+        return $config;
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function getForm()
     {
-        $instance = new Form(
-            $this->getName(),
-            $this->buildDispatcher(),
-            $this->getTypes(),
-            $this->getClientTransformers(),
-            $this->getNormTransformers(),
-            $this->getDataMapper(),
-            $this->getValidators(),
-            $this->getRequired(),
-            $this->getDisabled(),
-            $this->getErrorBubbling(),
-            $this->getEmptyData(),
-            $this->getAttributes()
-        );
-
-        foreach ($this->buildChildren() as $child) {
-            $instance->add($child);
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
         }
 
-        if (null !== $this->getData()) {
-            $instance->setData($this->getData());
+        $this->resolveChildren();
+
+        $form = new Form($this->getFormConfig());
+
+        foreach ($this->children as $child) {
+            // Automatic initialization is only supported on root forms
+            $form->add($child->setAutoInitialize(false)->getForm());
         }
 
-        return $instance;
-    }
-
-    public function setCurrentLoadingType($type)
-    {
-        $this->currentLoadingType = $type;
-    }
-
-    /**
-     * Returns the parent builder.
-     *
-     * @return FormBuilder The parent builder
-     */
-    public function getParent()
-    {
-        return $this->parent;
-    }
-
-    /**
-     * Sets the parent builder.
-     *
-     * @param FormBuilder $parent The parent builder
-     *
-     * @return FormBuilder The current builder
-     */
-    public function setParent(FormBuilder $parent = null)
-    {
-        $this->parent = $parent;
-
-        return $this;
-    }
-
-    /**
-     * Returns the event dispatcher.
-     *
-     * @return type
-     */
-    protected function buildDispatcher()
-    {
-        return $this->dispatcher;
-    }
-
-    /**
-     * Creates the children.
-     *
-     * @return array An array of Form
-     */
-    protected function buildChildren()
-    {
-        $children = array();
-
-        foreach ($this->children as $name => $builder) {
-            if (!$builder instanceof FormBuilder) {
-                $builder = $this->create($name, $builder['type'], $builder['options']);
-            }
-
-            $children[$builder->getName()] = $builder->getForm();
+        if ($this->getAutoInitialize()) {
+            // Automatically initialize the form if it is configured so
+            $form->initialize();
         }
 
-        return $children;
+        return $form;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIterator()
+    {
+        if ($this->locked) {
+            throw new BadMethodCallException('FormBuilder methods cannot be accessed anymore once the builder is turned into a FormConfigInterface instance.');
+        }
+
+        return new \ArrayIterator($this->all());
+    }
+
+    /**
+     * Converts an unresolved child into a {@link FormBuilder} instance.
+     *
+     * @param string $name The name of the unresolved child.
+     *
+     * @return FormBuilder The created instance.
+     */
+    private function resolveChild($name)
+    {
+        $info = $this->unresolvedChildren[$name];
+        $child = $this->create($name, $info['type'], $info['options']);
+        $this->children[$name] = $child;
+        unset($this->unresolvedChildren[$name]);
+
+        return $child;
+    }
+
+    /**
+     * Converts all unresolved children into {@link FormBuilder} instances.
+     */
+    private function resolveChildren()
+    {
+        foreach ($this->unresolvedChildren as $name => $info) {
+            $this->children[$name] = $this->create($name, $info['type'], $info['options']);
+        }
+
+        $this->unresolvedChildren = array();
     }
 }
